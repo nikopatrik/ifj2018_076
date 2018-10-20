@@ -1,4 +1,4 @@
-/*
+/**
  * @file: symtable.c
  * @date: 20.10.2018
  * @author: Peter Hornak - xhorna14
@@ -12,10 +12,6 @@
 
 #include "symtable.h"
 
-/*
- * @brief Hashovacia funkcia
- * @param *key Retazec
- */
 unsigned htab_hash_function(const char *key){
     unsigned h = 0;
     const unsigned char *p;
@@ -24,10 +20,6 @@ unsigned htab_hash_function(const char *key){
     return h;
 }
 
-/*
- * @brief Inicializacia tabulky o danej velkosti
- * @param arr_size Velkost pola
- */
 htab_t* htab_init(unsigned arr_size){
     //Alokacia- velkost tabulky + velkost (size) itemov
     htab_t* htab = (htab_t *) malloc(sizeof(htab_t) + arr_size*sizeof(struct htab_listitem *));
@@ -43,10 +35,6 @@ htab_t* htab_init(unsigned arr_size){
     return htab;
 }
 
-/*
- * @brief Vytvorenie a inicializacia tabulky na zaklade dat z tabulky t2, t2 zostane prazdna
- * @param newsize Nova velkost
- */
 htab_t* htab_move(unsigned newsize, htab_t* t2){
     
     htab_t *t = htab_init(newsize);
@@ -73,24 +61,14 @@ htab_t* htab_move(unsigned newsize, htab_t* t2){
     return t;
 }
 
-/*
- * @brief Vracia pocet prvkov zoznamu
- */
 unsigned htab_size(htab_t* t){
     return t->size;
 }
 
-/*
- * @brief Vrati pocet zoznamov v tabulke
- */
 unsigned htab_bucket_count(htab_t* t){
     return t->arr_size;
 }
 
-/*
- * @brief Hlada slovo v tabulke, ak ho najde zvacsi data, inak ho vlozi do tabulky
- * @param *key Retazec
- */
 struct htab_listitem* htab_lookup_add(htab_t* t, const char* key){
     
     if(t == NULL || key == NULL)
@@ -141,10 +119,6 @@ struct htab_listitem* htab_lookup_add(htab_t* t, const char* key){
     return new_item;
 }
 
-/*
- * @brief Hlada slovo v tabulke, ak najde vrati pointer, inak NULL
- * @param *key Retazec
- */
 struct htab_listitem* htab_find(htab_t* t, const char* key){
     
     if(t == NULL || key == NULL)
@@ -164,10 +138,6 @@ struct htab_listitem* htab_find(htab_t* t, const char* key){
     return item;
 }
 
-/*
- * @brief Zavola funkciu pre kazdy prvok tabulky
- * @param *func Ukazatel na funkciu 
- */
 void htab_foreach(htab_t* t, void(*func)(const char *, unsigned *)){
     
     if(t == NULL)
@@ -188,12 +158,7 @@ void htab_foreach(htab_t* t, void(*func)(const char *, unsigned *)){
     }
 }
 
-/*
- * @brief Vyhlada a vymaze zadane slovo z tabulky
- * @param *key Retazec
- */
-bool htab_remove(htab_t* t, const char* key){
-    
+bool htab_remove(htab_t* t, const char* key){    
     if(t == NULL || key == NULL)
         return false;
 
@@ -219,9 +184,6 @@ bool htab_remove(htab_t* t, const char* key){
     return false;
 }
  
-/*
- * @brief Vymaze zoznam a jeho prvky 
- */
 void htab_clear(htab_t* t){
     
     if(t == NULL)
@@ -246,9 +208,6 @@ void htab_clear(htab_t* t){
     }
 }
 
-/*
- * @brief Uvolni alokovanu pamat pre tabulku
- */
 void htab_free(htab_t* t){
     
     if(t == NULL)
