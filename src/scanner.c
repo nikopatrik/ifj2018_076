@@ -3,27 +3,19 @@
 #include <symtable.h>
 #include <string.h>
 
-#include "c201.h"
+#include "header/list.h"
+#include "header/scanner.h"
 
 FILE *f;
 
-<<<<<<< Updated upstream
-void firstChar(tList *L)
-=======
-
 void firstChar(tList *L,char c)
->>>>>>> Stashed changes
 {
     L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));
     L->Act->buffer[L->Act->length - 1] = c;
     L->Act->buffer[L->Act->length] = '\0';
 }
 
-<<<<<<< Updated upstream
-void addChar(tList *L)
-=======
 void addChar(tList *L,char c)
->>>>>>> Stashed changes
 {
     L->Act->length ++;
     L->Act->buffer = L->Act->buffer = (char*)realloc((L->Act->length+1) * sizeof(char));
@@ -32,85 +24,58 @@ void addChar(tList *L,char c)
 }
 
 int scanner(tList *L){
-    int state = 0;
+    automataState state = STATE_BEGIN;
     char c;
 
     while(1){
         if((c = fgetc(f)) == EOF)
             return END_OF_FILE;
         switch (state) {
-            case 0:
+            case STATE_BEGIN:
                 if(isspace(c))
-                    state = 0;
+                    state = STATE_BEGIN;
                 else if(c == '+' || c == '-' || c == '*' || c == '/')
-                    state = 1;
+                    state = STATE_OPERATOR;
                 else if(c == '=' || c == '<' || c== '>' || c == '!')
-                    state = 234;
+                    state = STATE_LOGIC;
                 else if(isdigit(c))
-                    state = 5;
-<<<<<<< Updated upstream
-                else if(isalpha(c) || c == '_')
-=======
+                    state = STATE_INT;
                 else if((c >= 'a' && c <= 'z') || c == '_')
->>>>>>> Stashed changes
-                    state = 6;
+                    state = STATE_ID;
                 else if(c == '#')
-                    state = 7;
+                    state = STATE_LCOM;
                 else if(c == '\n')
-                    state = 8;
+                    state = STATE_BCOM;
                 break;
 
-            case 1:
-<<<<<<< Updated upstream
-                firstChar(L);
-=======
+            case STATE_OPERATOR:
                 firstChar(L,c);
->>>>>>> Stashed changes
                 return 0;
                 break;
 
-            case 234:
-<<<<<<< Updated upstream
-                firstChar(L);
-=======
+            case STATE_LOGIC:
                 firstChar(L,c);
->>>>>>> Stashed changes
                 if((c = fgetc(f)) == '='){
-                    state = 9;
+                    state = STATE_LOGIC_EQUAL;
                     break;
                 }
                 else{
-<<<<<<< Updated upstream
-                    L->Act->buffer[L->Act->length] = '\0';
-=======
->>>>>>> Stashed changes
                     ungetc(c,f);
                     return 0;
                     break;
                 }
 
-            case 5:
-<<<<<<< Updated upstream
-                firstChar(L);
-=======
+            case STATE_INT:
                 firstChar(L,c);
->>>>>>> Stashed changes
                 while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
                         if(c == '.')
-<<<<<<< Updated upstream
-=======
                             addChar(L,c)
->>>>>>> Stashed changes
-                            state = 10;
+                            state = STATE_FLOAT;
                             break;
                         else
                         {
-<<<<<<< Updated upstream
-                            L->Act->buffer[L->Act->length] = '\0';
-=======
->>>>>>> Stashed changes
                             ungetc(c,f);
                             return 0;
                             break;
@@ -121,46 +86,31 @@ int scanner(tList *L){
                 }
                 break;
 
-            case 9:
-<<<<<<< Updated upstream
-                addChar(tList *L);
-=======
+            case STATE_LOGIC_EQUAL:
                 addChar(L,c);
->>>>>>> Stashed changes
                 return 0;
                 break;
 
-            case 10:
+            case STATE_FLOAT:
                 while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
                         if(c == 'e' || c == 'E')
-<<<<<<< Updated upstream
-=======
                             addChar(L,c)
->>>>>>> Stashed changes
-                            state = 11;
+                            state = STATE_EXPO;
                             break;
                         else
                         {
-<<<<<<< Updated upstream
-                            L->Act->buffer[L->Act->length] = '\0';
-=======
->>>>>>> Stashed changes
                             ungetc(c,f);
                             return 0;
                             break;
                         }
                     }
                     else
-<<<<<<< Updated upstream
-                        addChar(tList *L);
-                }   //TODO Dokoncit posledny stav
-=======
                         addChar(L,c);
                 }
 
-            case 11:
+            case STATE_EXPO_FLOAT:  //TODO: Nacitavat aj +/-
                 while(1){
                     if(isdigit(c = fgetc(f)))
                         addChar(L,c);
@@ -170,8 +120,6 @@ int scanner(tList *L){
                         break;
                     }
                 }
->>>>>>> Stashed changes
-
 
     }   //switch
     }   //cyklus
