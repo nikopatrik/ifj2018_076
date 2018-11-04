@@ -3,16 +3,14 @@
 #include <symtable.h>
 #include <string.h>
 
+#include "c201.h"
 
 FILE *f;
 
-typedef struct list{
-    char *buffer;
-    unsigned length = 1;
-    struct *list next;
 
 
-int scanner(){
+
+int scanner(tList *L){
     int state = 0;
     char c;
 
@@ -38,31 +36,34 @@ int scanner(){
                 break;
 
             case 1:
-                list->buffer = (char*)malloc((list->length + 1) * sizeof(char));  //nevedel som ako to lepsie vymysliet
-                list->buffer[0] = c;
-                list->buffer[1] = '\0';
+                L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));  //nevedel som ako to lepsie vymysliet
+                L->Act->buffer[0] = c;
+                L->Act->buffer[1] = '\0';
                 return 0; //este domyslim co returnovat
                 break;
 
             case 234:
-                list->buffer = (char*)malloc((list->length + 1) * sizeof(char));
-                list->buffer[list->length - 1] = c;
+                L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));
+                L->Act->buffer[L->Act->length - 1] = c;
                 if((c = fgetc(f)) == '='){
                     case = 9;
                     break;
                 }
                 else{
-                    list->buffer[list->length] = '\0';
+                    L->Act->buffer[L->Act->length] = '\0';
                     ungetc(c,f);
                     return 0;
                     break;
                 }
 
+            case 5:
+                
+
             case 9:
-                list->length ++;
-                list->buffer = list->buffer = (char*)realloc((list->length+1) * sizeof(char));
-                list->buffer[list->length - 1] = c;
-                list->buffer[list->length] = '\0';
+                L->Act->length ++;
+                L->Act->buffer = L->Act->buffer = (char*)realloc((L->Act->length+1) * sizeof(char));
+                L->Act->buffer[L->Act->length - 1] = c;
+                L->Act->buffer[L->Act->length] = '\0';
                 return 0;
                 break;
 
