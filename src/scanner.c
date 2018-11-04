@@ -7,8 +7,20 @@
 
 FILE *f;
 
+void firstChar(tList *L)
+{
+    L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));
+    L->Act->buffer[L->Act->length - 1] = c;
+    L->Act->buffer[L->Act->length] = '\0';
+}
 
-
+void addChar(tList *L)
+{
+    L->Act->length ++;
+    L->Act->buffer = L->Act->buffer = (char*)realloc((L->Act->length+1) * sizeof(char));
+    L->Act->buffer[L->Act->length - 1] = c;
+    L->Act->buffer[L->Act->length] = '\0';
+}
 
 int scanner(tList *L){
     int state = 0;
@@ -36,17 +48,14 @@ int scanner(tList *L){
                 break;
 
             case 1:
-                L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));  //nevedel som ako to lepsie vymysliet
-                L->Act->buffer[0] = c;
-                L->Act->buffer[1] = '\0';
-                return 0; //este domyslim co returnovat
+                firstChar(L);
+                return 0;
                 break;
 
             case 234:
-                L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));
-                L->Act->buffer[L->Act->length - 1] = c;
+                firstChar(L);
                 if((c = fgetc(f)) == '='){
-                    case = 9;
+                    state = 9;
                     break;
                 }
                 else{
@@ -57,15 +66,50 @@ int scanner(tList *L){
                 }
 
             case 5:
-                
+                firstChar(L);
+                while(1){
+                    if(!isdigit(c = fgetc(f)))
+                    {
+                        if(c == '.')
+                            state = 10;
+                            break;
+                        else
+                        {
+                            L->Act->buffer[L->Act->length] = '\0';
+                            ungetc(c,f);
+                            return 0;
+                            break;
+                        }
+                    }
+                    else
+                        addChar(tList *L);
+                }
+                break;
 
             case 9:
-                L->Act->length ++;
-                L->Act->buffer = L->Act->buffer = (char*)realloc((L->Act->length+1) * sizeof(char));
-                L->Act->buffer[L->Act->length - 1] = c;
-                L->Act->buffer[L->Act->length] = '\0';
+                addChar(tList *L);
                 return 0;
                 break;
+
+            case 10:
+                while(1){
+                    if(!isdigit(c = fgetc(f)))
+                    {
+                        if(c == 'e' || c == 'E')
+                            state = 11;
+                            break;
+                        else
+                        {
+                            L->Act->buffer[L->Act->length] = '\0';
+                            ungetc(c,f);
+                            return 0;
+                            break;
+                        }
+                    }
+                    else
+                        addChar(tList *L);
+                }   //TODO Dokoncit posledny stav
+
 
     }   //switch
     }   //cyklus
