@@ -3,6 +3,7 @@
 #include <symtable.h>
 #include <string.h>
 
+
 typedef enum automataState{
     STATE_BEGIN,
     STATE_OPERATOR,
@@ -17,6 +18,29 @@ typedef enum automataState{
     STATE_LCOM,
     STATE_BCOM,
 } automataState;
+
+typedef enum tokenType{
+    TYPE_PLUS,          //  +
+    TYPE_MINUL,         //  -
+    TYPE_MULT,          //  *
+    TYPE_DIV,           //  /
+    TYPE_SET,           //  =
+    TYPE_EQUAL,         //  ==
+    TYPE_GREAT,         //  >
+    TYPE_LESS,          //  <
+    TYPE_NEG,           //  !
+    TYPE_GREAT_EQUAL,   //  >=
+    TYPE_LESS_EQUAL,    //  <=
+    TYPE_NEG_EQUAL,     //  !=
+    TYPE_L_BRE,         //  (
+    TYPE_R_BRE,         //  )
+    TYPE_L_COM,
+    TYPE_B_COM
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_EOF,
+
+} tokenType;
 
 void firstChar(tList *L, char c);
 

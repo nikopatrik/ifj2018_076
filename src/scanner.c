@@ -8,24 +8,24 @@
 
 FILE *f;
 
-void firstChar(tList *L,char c)
+void firstChar(char *buffer,char c)
 {
-    L->Act->buffer = (char*)malloc((L->Act->length + 1) * sizeof(char));
-    L->Act->buffer[L->Act->length - 1] = c;
-    L->Act->buffer[L->Act->length] = '\0';
+    buffer = (char*)malloc(2 * sizeof(char));
+    buffer[0] = c;
+    buffer[1] = '\0';
 }
 
-void addChar(tList *L,char c)
+void addChar(char *buffer,char c,unsigned length){
 {
-    L->Act->length ++;
-    L->Act->buffer = L->Act->buffer = (char*)realloc((L->Act->length+1) * sizeof(char));
-    L->Act->buffer[L->Act->length - 1] = c;
-    L->Act->buffer[L->Act->length] = '\0';
+    buffer = buffer = (char*)realloc((length+1) * sizeof(char));
+    buffer[length - 1] = c;
+    buffer[length] = '\0';
 }
 
-int scanner(tList *L){
+int scanner(char *buffer){
     automataState state = STATE_BEGIN;
     char c;
+    unsigned length = 1;
 
     while(1){
         if((c = fgetc(f)) == EOF)
@@ -34,10 +34,35 @@ int scanner(tList *L){
             case STATE_BEGIN:
                 if(isspace(c))
                     state = STATE_BEGIN;
-                else if(c == '+' || c == '-' || c == '*' || c == '/')
-                    state = STATE_OPERATOR;
-                else if(c == '=' || c == '<' || c== '>' || c == '!')
-                    state = STATE_LOGIC;
+                switch(c){
+                    case '+' :
+                        firstChar(buffer,c);
+                        return TYPE_PLUS;
+                        break;
+                    case '-' :
+                        firstChar(buffer,c);
+                        return TYPE_MINUS;
+                        break;
+                    case '*' :
+                        firstChar(buffer,c);
+                        return TYPE_MULT;
+                        break;
+                    case '/' :
+                        firstChar(buffer,c);
+                        return TYPE_DIV;
+                        break;
+                    case '(' :
+                        firstChar(buffer,c);
+                        return TYPE_L_BRE;
+                        break;
+                    case ')' :
+                        firstChar(buffer,c);
+                        return TYPE_L_BRE;
+                        break;
+                }
+
+                // else if(c == '=' || c == '<' || c== '>' || c == '!')
+                //     state = STATE_LOGIC;
                 else if(isdigit(c))
                     state = STATE_INT;
                 else if((c >= 'a' && c <= 'z') || c == '_')
@@ -48,30 +73,26 @@ int scanner(tList *L){
                     state = STATE_BCOM;
                 break;
 
-            case STATE_OPERATOR:
-                firstChar(L,c);
-                return 0;
-                break;
-
-            case STATE_LOGIC:
-                firstChar(L,c);
-                if((c = fgetc(f)) == '='){
-                    state = STATE_LOGIC_EQUAL;
-                    break;
-                }
-                else{
-                    ungetc(c,f);
-                    return 0;
-                    break;
-                }
+            // case STATE_LOGIC:
+            //     firstChar(buffer,c);
+            //     if((c = fgetc(f)) == '='){
+            //         state = STATE_LOGIC_EQUAL;
+            //         break;
+            //     }
+            //     else{
+            //         ungetc(c,f);
+            //         return 0;
+            //         break;
+            //     }
 
             case STATE_INT:
-                firstChar(L,c);
+                firstChar(buffer,c);
                 while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
                         if(c == '.')
-                            addChar(L,c)
+                            length ++;
+                            addChar(buffer,c,length)
                             state = STATE_FLOAT;
                             break;
                         else
@@ -82,12 +103,14 @@ int scanner(tList *L){
                         }
                     }
                     else
-                        addChar(tList *L);
+                        length ++;
+                        addChar(buffer,c,length);
                 }
                 break;
 
             case STATE_LOGIC_EQUAL:
-                addChar(L,c);
+                length ++;
+                addChar(buffer,c,length);
                 return 0;
                 break;
 
@@ -95,10 +118,12 @@ int scanner(tList *L){
                 while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
-                        if(c == 'e' || c == 'E')
-                            addChar(L,c)
+                        if(c == 'e' || c == 'E'){
+                            length ++;
+                            addChar(buffer,c,length)
                             state = STATE_EXPO;
                             break;
+                        }
                         else
                         {
                             ungetc(c,f);
@@ -106,14 +131,29 @@ int scanner(tList *L){
                             break;
                         }
                     }
-                    else
-                        addChar(L,c);
+                    else{
+                        length ++;
+                        addChar(buffer,c,length);
+                    }
                 }
 
-            case STATE_EXPO_FLOAT:  //TODO: Nacitavat aj +/-
+            case STATE_EXPO:
+                if((c=fgetc(f)) == '+' || c == '-' || isdigit(c)){
+                    length ++;
+                    addChar(buffer,c,length);
+                    state = STATE_EXPO_FLOAT;
+                    break;
+                }
+                else{
+
+                }
+
+
                 while(1){
-                    if(isdigit(c = fgetc(f)))
-                        addChar(L,c);
+                    if(isdigit(c = fgetc(f))){
+                        length ++;
+                        addChar(buffer,c,length);
+                    }
                     else{
                         ungetc(c,f);
                         return 0;

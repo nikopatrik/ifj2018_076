@@ -15,18 +15,13 @@
 
 #define TRUE 1
 #define FALSE 0
-                                           /* Indikace, zda byl příklad řešen */
-                                   /* Detects whether the task is implemented */
-extern int solved;
-                                                            /* Indikace chyby */
-                                                                /* Error flag */
-extern int errflg;
-                                                             /* Prvek seznamu */
-                                                /* Definition of list element */
+
+
+
 typedef struct tElem {
     struct tElem *ptr;
-    unsigned length = 1;
     char *buffer
+    unsigned length;
 } *tElemPtr;
                                                             /* Vlastní seznam */
                                                         /* Definition of list */
