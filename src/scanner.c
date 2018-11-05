@@ -8,16 +8,16 @@
 
 FILE *f;
 
-void firstChar(char *buffer,char c)
+void firstChar(char *buffer, char c)
 {
     buffer = (char*)malloc(2 * sizeof(char));
     buffer[0] = c;
     buffer[1] = '\0';
 }
 
-void addChar(char *buffer,char c,unsigned length){
+void addChar(char *buffer, char c, unsigned length){
 {
-    buffer = buffer = (char*)realloc((length+1) * sizeof(char));
+	buffer = (char*)realloc((length+1) * sizeof(char));
     buffer[length - 1] = c;
     buffer[length] = '\0';
 }
@@ -29,63 +29,88 @@ int scanner(char *buffer){
 
     while(1){
         if((c = fgetc(f)) == EOF)
-            return END_OF_FILE;
+            return TYPE_EOF;
         switch (state) {
             case STATE_BEGIN:
                 if(isspace(c))
                     state = STATE_BEGIN;
                 switch(c){
                     case '+' :
-                        firstChar(buffer,c);
                         return TYPE_PLUS;
                         break;
                     case '-' :
-                        firstChar(buffer,c);
                         return TYPE_MINUS;
                         break;
                     case '*' :
-                        firstChar(buffer,c);
                         return TYPE_MULT;
                         break;
                     case '/' :
-                        firstChar(buffer,c);
                         return TYPE_DIV;
                         break;
                     case '(' :
-                        firstChar(buffer,c);
                         return TYPE_L_BRE;
                         break;
                     case ')' :
-                        firstChar(buffer,c);
                         return TYPE_L_BRE;
                         break;
+					case '=' :
+						state = STATE_ASSIGN;
+						break;
+					case '<' :
+						state = STATE_LESS;
+						break;
+					case '>' :
+						state = STATE_GREAT;
+						break;
+					case '!' :
+						state = STATE_NEG;
+						break;
+					case '#' :
+						state = STATE_LCOM;
+						break;
+					case '\n' :
+						state = STATE_BCOM;
+						break;
+					default :
+						if(isdigit(c))
+							state = STATE_INT;
+						else if((c >= 'a' && c <= 'z') || c == '_')
+							state = STATE_ID;
                 }
 
-                // else if(c == '=' || c == '<' || c== '>' || c == '!')
-                //     state = STATE_LOGIC;
-                else if(isdigit(c))
-                    state = STATE_INT;
-                else if((c >= 'a' && c <= 'z') || c == '_')
-                    state = STATE_ID;
-                else if(c == '#')
-                    state = STATE_LCOM;
-                else if(c == '\n')
-                    state = STATE_BCOM;
-                break;
+			case STATE_ASSIGN : 
+				if(c == '=')
+					return TYPE_EQUAL;
+				else{
+					ungetc(c, f);
+					return TYPE_ASSIGN;
+				}
 
-            // case STATE_LOGIC:
-            //     firstChar(buffer,c);
-            //     if((c = fgetc(f)) == '='){
-            //         state = STATE_LOGIC_EQUAL;
-            //         break;
-            //     }
-            //     else{
-            //         ungetc(c,f);
-            //         return 0;
-            //         break;
-            //     }
+			case STATE_LESS :
+				if(c == '=')
+					return TYPE_LESS_EQUAL;
+				else{
+					ungetc(c, f);
+					return TYPE_LESS;
+				}
 
-            case STATE_INT:
+			case STATE_GREAT :
+				if(c == '=')
+					return TYPE_GREAT_EQUAL;
+				else{
+					ungetc(c, f);
+					return TYPE_GREAT;
+				}
+
+			case STATE_NEG :
+				if(c == '=')
+					return TYPE_NEG_EQUAL;
+				else{
+					ungetc(c, f);
+					return TYPE_NEG;
+				}
+
+			case STATE_INT:
                 firstChar(buffer,c);
                 while(1){
                     if(!isdigit(c = fgetc(f)))
@@ -93,12 +118,12 @@ int scanner(char *buffer){
                         if(c == '.')
                             length ++;
                             addChar(buffer,c,length)
-                            state = STATE_FLOAT;
+                            state = STATE_INT_DOT;
                             break;
                         else
                         {
                             ungetc(c,f);
-                            return 0;
+                            return TYPE_INT;
                             break;
                         }
                     }
@@ -108,13 +133,7 @@ int scanner(char *buffer){
                 }
                 break;
 
-            case STATE_LOGIC_EQUAL:
-                length ++;
-                addChar(buffer,c,length);
-                return 0;
-                break;
-
-            case STATE_FLOAT:
+            case STATE_FLOAT:			// zmenit a doplnit stavy pre EXPO bez desatinnej casti
                 while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
@@ -127,7 +146,7 @@ int scanner(char *buffer){
                         else
                         {
                             ungetc(c,f);
-                            return 0;
+                            return TYPE_FLOAT;
                             break;
                         }
                     }
@@ -138,30 +157,28 @@ int scanner(char *buffer){
                 }
 
             case STATE_EXPO:
-                if((c=fgetc(f)) == '+' || c == '-' || isdigit(c)){
+                if((c = fgetc(f)) == '+' || c == '-' || isdigit(c)){
                     length ++;
                     addChar(buffer,c,length);
                     state = STATE_EXPO_FLOAT;
                     break;
                 }
                 else{
+	                ungetc(c,f);
+  	                
+					// ERROR
+					
+       	            break;
+               	}
 
-                }
+			case STATE_ID :
+				while(1){
+					if(isalpha(c = fgetc(f))){
+						state
 
+				
 
-                while(1){
-                    if(isdigit(c = fgetc(f))){
-                        length ++;
-                        addChar(buffer,c,length);
-                    }
-                    else{
-                        ungetc(c,f);
-                        return 0;
-                        break;
-                    }
-                }
-
-    }   //switch
+	    }   //switch
     }   //cyklus
 
-    }
+}

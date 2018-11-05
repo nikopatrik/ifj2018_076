@@ -10,6 +10,8 @@ typedef enum automataState{
     STATE_LOGIC,
     STATE_LOGIC_EQUAL,
     STATE_INT,
+	STATE_INT_DOT,
+	//nove stavy pre EXPO bez desatinnej casti
     STATE_FLOAT,
     STATE_EXPO,
     STATE_EXPO_FLOAT,
@@ -17,6 +19,11 @@ typedef enum automataState{
     STATE_FUNC_ID,
     STATE_LCOM,
     STATE_BCOM,
+	STATE_ASSIGN,
+	STATE_LESS,
+	STATE_GREAT,
+	STATE_NEG,
+
 } automataState;
 
 typedef enum tokenType{
@@ -24,7 +31,7 @@ typedef enum tokenType{
     TYPE_MINUL,         //  -
     TYPE_MULT,          //  *
     TYPE_DIV,           //  /
-    TYPE_SET,           //  =
+    TYPE_ASSIGN,        //  =
     TYPE_EQUAL,         //  ==
     TYPE_GREAT,         //  >
     TYPE_LESS,          //  <
