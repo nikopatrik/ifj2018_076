@@ -5,24 +5,24 @@
 
 
 typedef enum automataState{
-    STATE_BEGIN,
-    STATE_OPERATOR,
-    STATE_LOGIC,
-    STATE_LOGIC_EQUAL,
-    STATE_INT,
-	STATE_INT_DOT,
-	//nove stavy pre EXPO bez desatinnej casti
-    STATE_FLOAT,
-    STATE_EXPO,
-    STATE_EXPO_FLOAT,
+    STATE_BEGIN,				// DONE
+    STATE_INT,					// DONE
+	STATE_INT_DOT,				// DONE
+	STATE_INT_E,				// TODO ERROR
+	STATE_INT_EXPO,				// DONE
+    STATE_FLOAT,				// DONE
+    STATE_EXPO,					// TO REMOVE
+    STATE_FLOAT_E,				// TODO ERROR
+	STATE_FLOAT_EXPO_PLUS,		// TODO ERROR
+	STATE_FLOAT_EXPO,			// DONE
     STATE_ID,
     STATE_FUNC_ID,
     STATE_LCOM,
     STATE_BCOM,
-	STATE_ASSIGN,
-	STATE_LESS,
-	STATE_GREAT,
-	STATE_NEG,
+	STATE_ASSIGN,				// DONE
+	STATE_LESS,					// DONE
+	STATE_GREAT,				// DONE
+	STATE_NEG,					// DONE
 
 } automataState;
 
@@ -44,7 +44,11 @@ typedef enum tokenType{
     TYPE_L_COM,
     TYPE_B_COM
     TYPE_INT,
+	TYPE_INT_EXPO,
     TYPE_FLOAT,
+	TYPE_FLOAT_EXPO,
+	TYPE_ID,
+	TYPE_FUNC_ID,
     TYPE_EOF,
 
 } tokenType;

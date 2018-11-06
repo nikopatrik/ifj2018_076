@@ -78,37 +78,50 @@ int scanner(char *buffer){
 							state = STATE_ID;
                 }
 
+
 			case STATE_ASSIGN : 
 				if(c == '=')
+					length++;
+					addChar(buffer, c, length);
 					return TYPE_EQUAL;
 				else{
 					ungetc(c, f);
 					return TYPE_ASSIGN;
 				}
 
+
 			case STATE_LESS :
 				if(c == '=')
+					length++;
+					addChar(buffer, c, length);
 					return TYPE_LESS_EQUAL;
 				else{
 					ungetc(c, f);
 					return TYPE_LESS;
 				}
 
+
 			case STATE_GREAT :
-				if(c == '=')
+				if(c == '='){
+					length++;
+					addChar(buffer, c, length);
 					return TYPE_GREAT_EQUAL;
 				else{
 					ungetc(c, f);
 					return TYPE_GREAT;
 				}
 
+
 			case STATE_NEG :
 				if(c == '=')
+					length++;
+					addChar(buffer, c, length);
 					return TYPE_NEG_EQUAL;
 				else{
 					ungetc(c, f);
 					return TYPE_NEG;
 				}
+
 
 			case STATE_INT:
                 firstChar(buffer,c);
@@ -120,18 +133,46 @@ int scanner(char *buffer){
                             addChar(buffer,c,length)
                             state = STATE_INT_DOT;
                             break;
-                        else
+                        else if(c == 'e' || c == 'E'){
+							state = STATE_INT_E;
+							break;
+						} else
                         {
                             ungetc(c,f);
                             return TYPE_INT;
                             break;
                         }
                     }
-                    else
+                    else{
                         length ++;
                         addChar(buffer,c,length);
-                }
+                	}
                 break;
+				}
+
+
+			case STATE_INT_E :
+                if((c = fgetc(f)) == '+' || c == '-' || isdigit(c)){
+                    length ++;
+                    addChar(buffer,c,length);
+                    state = STATE_INT_EXPO;
+                } else {
+					// ERROR
+				}
+				break;
+
+
+			case STATE_INT_EXPO :
+				while(1){
+					if(isdigit(c = fgetc(f))){
+						length++;
+						addChar(buffer, c, length);
+					}else{
+						ungetc(c, f);
+						return TYPE_INT_EXPO;
+					}
+				}
+
 
 			case STATE_INT_DOT :
 				if(isdigit(c)){
@@ -142,14 +183,15 @@ int scanner(char *buffer){
 					break;
 				}
 
-            case STATE_FLOAT:			// zmenit a doplnit stavy pre EXPO bez desatinnej casti
-                while(1){
+
+            case STATE_FLOAT:
+				while(1){
                     if(!isdigit(c = fgetc(f)))
                     {
                         if(c == 'e' || c == 'E'){
                             length ++;
                             addChar(buffer,c,length)
-                            state = STATE_EXPO_FLOAT;
+                            state = STATE_FLOAT_E;
                             break;
                         }
                         else
@@ -165,25 +207,60 @@ int scanner(char *buffer){
                     }
                 }
 
-            case STATE_EXPO:
+
+            case STATE_FLOAT_E:
                 if((c = fgetc(f)) == '+' || c == '-' || isdigit(c)){
                     length ++;
                     addChar(buffer,c,length);
-                    state = STATE_EXPO_FLOAT;
-                    break;
-                }
-                else{
+                    state = STATE_FLOAT_EXPO_PLUS;
+                }else{
 	                ungetc(c,f);
   	                
 					// ERROR
 					
-       	            break;
                	}
+				break;
+
+
+			case STATE_FLOAT_EXPO_PLUS :
+				if(isdigit(c = fgetc(f))){
+					length ++;
+					addChar(buffer, c , length);
+					state = STATE_FLOAT_EXPO;
+				}else{
+					// ERROR
+				}
+				break;
+
+
+			case STATE_FLOAT_EXPO :
+				while(1){
+					if(isdigit(c = fgetc(f))){
+						length++;
+						addChar(buffer, c, length);
+					}else{
+						ungetc(c, f);
+						return TYPE_FLOAT_EXPO;
+					}
+				}
+
 
 			case STATE_ID :
 				while(1){
-					if(isalpha(c = fgetc(f))){
-						state
+					c = fgetc(f);
+					if(isalnum(c) || c = '_'){
+						length++;
+						addChar(buffer, c, length);
+					}else if(c == '?' || c == '!'){
+						length++;
+						addChar(buffer, c, length);
+						return STATE_FUNC_ID;
+					}else{
+						ungetc(c, f);
+						return TYPE_ID;
+					}
+				}
+
 
 				
 
