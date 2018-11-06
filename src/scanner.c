@@ -133,6 +133,15 @@ int scanner(char *buffer){
                 }
                 break;
 
+			case STATE_INT_DOT :
+				if(isdigit(c)){
+					state = STATE_FLOAT;
+					break;
+				}else{
+					// ERROR
+					break;
+				}
+
             case STATE_FLOAT:			// zmenit a doplnit stavy pre EXPO bez desatinnej casti
                 while(1){
                     if(!isdigit(c = fgetc(f)))
@@ -140,7 +149,7 @@ int scanner(char *buffer){
                         if(c == 'e' || c == 'E'){
                             length ++;
                             addChar(buffer,c,length)
-                            state = STATE_EXPO;
+                            state = STATE_EXPO_FLOAT;
                             break;
                         }
                         else
