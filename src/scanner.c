@@ -156,9 +156,8 @@ int scanner(char *buffer){
                     length ++;
                     addChar(buffer,c,length);
                     state = STATE_INT_EXPO;
-                } else {
-					// ERROR
-				}
+                } else
+					return TYPE_ERROR;
 				break;
 
 
@@ -177,11 +176,9 @@ int scanner(char *buffer){
 			case STATE_INT_DOT :
 				if(isdigit(c)){
 					state = STATE_FLOAT;
-					break;
-				}else{
-					// ERROR
-					break;
-				}
+				}else
+					return TYPE_ERROR;
+				break;
 
 
             case STATE_FLOAT:
@@ -214,11 +211,8 @@ int scanner(char *buffer){
                     addChar(buffer,c,length);
                     state = STATE_FLOAT_EXPO_PLUS;
                 }else{
-	                ungetc(c,f);
-  	                
-					// ERROR
-					
-               	}
+	                ungetc(c,f); 
+					return TYPE_ERROR;
 				break;
 
 
@@ -227,9 +221,8 @@ int scanner(char *buffer){
 					length ++;
 					addChar(buffer, c , length);
 					state = STATE_FLOAT_EXPO;
-				}else{
-					// ERROR
-				}
+				}else
+					return TYPE_ERROR;
 				break;
 
 
@@ -254,7 +247,7 @@ int scanner(char *buffer){
 					}else if(c == '?' || c == '!'){
 						length++;
 						addChar(buffer, c, length);
-						return STATE_FUNC_ID;
+						return TYPE_FUNC_ID;
 					}else{
 						ungetc(c, f);
 						return TYPE_ID;
@@ -262,7 +255,134 @@ int scanner(char *buffer){
 				}
 
 
+			case STATE_LCOM :
+				while(1){
+					if((c = fgetc(f)) == EOL){
+						state = STATE_BEGIN;
+						break;
+					}
+				}
+				break;
+
+
+			case STATE_BCOM :
+				if(c == '='){
+					state = STATE_BCOM_EQUALS;
+				}else{
+					ungetc(c, f);
+					state = STATE_BEGIN;
+				}
+				break;
+
+
+			case STATE_BCOM_EQUALS :
+				if(c == 'b'){
+					state = STATE_BCOM_B;
+				}else
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_B :
+				if(c == 'e'){
+					state = STATE_BCOM_E;
+				}else
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_E :
+				if(c == 'g'){
+					state = STATE_BCOM_G;
+				}else
+					return TYPE_ERROR;
+				break;
 				
+
+			case STATE_BCOM_G :
+				if(c == 'i'){
+					state = STATE_BCOM_I;
+				}else
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_I :
+				if(c == 'n')
+					state = STATE_BCOM_N;
+				else{
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_N :
+				if(isspace(c)){
+					state = STATE_BCOM_COM;
+				}else
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_COM :
+				while(1){
+					if((c = fgetc(f)) == '/n'){
+						state = STATE_BCOM_COM_EOL;
+						break;
+					}
+				}
+				break;
+
+
+			case STATE_BCOM_COM_EOL :
+				if(c == '=')
+					state = STATE_BCOM_COM_EQUALS;
+				else
+					state = STATE_BCOM_COM;
+				break;
+
+
+			case STATE_BCOM_COM_EQUALS :
+				if(c == 'e')
+					state = STATE_BCOM_COM_E;
+				else
+					state = STATE_BCOM_COM;
+				break;
+
+
+			case STATE_BCOM_COM_E :
+				if(c == 'n')
+					state = STATE_BCOM_COM_N;
+				else
+					state = STATE_BCOM_COM;
+				break;
+
+
+			case STATE_BCOM_COM_N :
+				if(c == 'd')
+					state = STATE_BCOM_COM_D;
+				else
+					state = STATE_BCOM_COM;
+				break;
+
+
+			case STATE_BCOM_COM_D :
+				if(isspace(c))
+					state = STATE_BCOM_COM_2;
+				else
+					return TYPE_ERROR;
+				break;
+
+
+			case STATE_BCOM_COM_2 :
+				while(1){
+					if((c = fgetc(f)) == EOL){
+						state = STATE_BEGIN;
+						break;
+					}
+				}
+				break;
+
+
 
 	    }   //switch
     }   //cyklus
