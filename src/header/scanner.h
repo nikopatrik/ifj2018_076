@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <symtable.h>
 #include <string.h>
+#include <ctype.h>
 
 
 typedef enum automataState{
@@ -39,7 +40,7 @@ typedef enum automataState{
 
 typedef enum tokenType{
     TYPE_PLUS,          //  +
-    TYPE_MINUL,         //  -
+    TYPE_MINUS,         //  -
     TYPE_MULT,          //  *
     TYPE_DIV,           //  /
     TYPE_ASSIGN,        //  =
@@ -53,7 +54,7 @@ typedef enum tokenType{
     TYPE_L_BRE,         //  (
     TYPE_R_BRE,         //  )
     TYPE_L_COM,
-    TYPE_B_COM
+    TYPE_B_COM,
     TYPE_INT,
 	TYPE_INT_EXPO,
     TYPE_FLOAT,
@@ -65,8 +66,8 @@ typedef enum tokenType{
 
 } tokenType;
 
-void firstChar(tList *L, char c);
+void firstChar(char *buffer, char c);
 
-void addChar(tList *L, char c);
+void addChar(char *buffer, char c, unsigned length);
 
-int scanner(tList *L);
+int scanner(char *buffer);

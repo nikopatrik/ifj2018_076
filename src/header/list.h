@@ -20,7 +20,7 @@
 
 typedef struct tElem {
     struct tElem *ptr;
-    char *buffer
+    char *buffer;
     unsigned length;
 } *tElemPtr;
                                                             /* Vlastní seznam */

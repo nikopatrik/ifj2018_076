@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <symtable.h>
-#include <string.h>
-
 #include "header/list.h"
 #include "header/scanner.h"
 
@@ -15,9 +10,9 @@ void firstChar(char *buffer, char c)
     buffer[1] = '\0';
 }
 
-void addChar(char *buffer, char c, unsigned length){
+void addChar(char *buffer, char c, unsigned length)
 {
-	buffer = (char*)realloc((length+1) * sizeof(char));
+	buffer = (char*)realloc(buffer, (length+1) * sizeof(char));
     buffer[length - 1] = c;
     buffer[length] = '\0';
 }
@@ -80,22 +75,22 @@ int scanner(char *buffer){
 
 
 			case STATE_ASSIGN : 
-				if(c == '=')
+				if(c == '='){
 					length++;
 					addChar(buffer, c, length);
 					return TYPE_EQUAL;
-				else{
+				}else{
 					ungetc(c, f);
 					return TYPE_ASSIGN;
 				}
 
 
 			case STATE_LESS :
-				if(c == '=')
+				if(c == '='){
 					length++;
 					addChar(buffer, c, length);
 					return TYPE_LESS_EQUAL;
-				else{
+				}else{
 					ungetc(c, f);
 					return TYPE_LESS;
 				}
@@ -106,18 +101,18 @@ int scanner(char *buffer){
 					length++;
 					addChar(buffer, c, length);
 					return TYPE_GREAT_EQUAL;
-				else{
+				}else{
 					ungetc(c, f);
 					return TYPE_GREAT;
 				}
 
 
 			case STATE_NEG :
-				if(c == '=')
+				if(c == '='){
 					length++;
 					addChar(buffer, c, length);
 					return TYPE_NEG_EQUAL;
-				else{
+				}else{
 					ungetc(c, f);
 					return TYPE_NEG;
 				}
@@ -126,24 +121,21 @@ int scanner(char *buffer){
 			case STATE_INT:
                 firstChar(buffer,c);
                 while(1){
-                    if(!isdigit(c = fgetc(f)))
-                    {
-                        if(c == '.')
+                    if(!isdigit(c = fgetc(f))){
+                        if(c == '.'){
                             length ++;
-                            addChar(buffer,c,length)
+                            addChar(buffer,c,length);
                             state = STATE_INT_DOT;
                             break;
-                        else if(c == 'e' || c == 'E'){
+						}else if(c == 'e' || c == 'E'){
 							state = STATE_INT_E;
 							break;
-						} else
-                        {
+						}else{
                             ungetc(c,f);
                             return TYPE_INT;
                             break;
                         }
-                    }
-                    else{
+                    }else{
                         length ++;
                         addChar(buffer,c,length);
                 	}
@@ -174,31 +166,27 @@ int scanner(char *buffer){
 
 
 			case STATE_INT_DOT :
-				if(isdigit(c)){
+				if(isdigit(c))
 					state = STATE_FLOAT;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 
 
             case STATE_FLOAT:
 				while(1){
-                    if(!isdigit(c = fgetc(f)))
-                    {
+                    if(!isdigit(c = fgetc(f))){
                         if(c == 'e' || c == 'E'){
                             length ++;
-                            addChar(buffer,c,length)
+                            addChar(buffer,c,length);
                             state = STATE_FLOAT_E;
                             break;
-                        }
-                        else
-                        {
+                        }else{
                             ungetc(c,f);
                             return TYPE_FLOAT;
                             break;
                         }
-                    }
-                    else{
+                    }else{
                         length ++;
                         addChar(buffer,c,length);
                     }
@@ -213,6 +201,7 @@ int scanner(char *buffer){
                 }else{
 	                ungetc(c,f); 
 					return TYPE_ERROR;
+				}
 				break;
 
 
@@ -241,7 +230,7 @@ int scanner(char *buffer){
 			case STATE_ID :
 				while(1){
 					c = fgetc(f);
-					if(isalnum(c) || c = '_'){
+					if(isalnum(c) || c == '_'){
 						length++;
 						addChar(buffer, c, length);
 					}else if(c == '?' || c == '!'){
@@ -257,7 +246,7 @@ int scanner(char *buffer){
 
 			case STATE_LCOM :
 				while(1){
-					if((c = fgetc(f)) == EOL){
+					if((c = fgetc(f)) == 10){
 						state = STATE_BEGIN;
 						break;
 					}
@@ -266,9 +255,9 @@ int scanner(char *buffer){
 
 
 			case STATE_BCOM :
-				if(c == '='){
+				if(c == '=')
 					state = STATE_BCOM_EQUALS;
-				}else{
+				else{
 					ungetc(c, f);
 					state = STATE_BEGIN;
 				}
@@ -276,33 +265,33 @@ int scanner(char *buffer){
 
 
 			case STATE_BCOM_EQUALS :
-				if(c == 'b'){
+				if(c == 'b')
 					state = STATE_BCOM_B;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 
 
 			case STATE_BCOM_B :
-				if(c == 'e'){
+				if(c == 'e')
 					state = STATE_BCOM_E;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 
 
 			case STATE_BCOM_E :
-				if(c == 'g'){
+				if(c == 'g')
 					state = STATE_BCOM_G;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 				
 
 			case STATE_BCOM_G :
-				if(c == 'i'){
+				if(c == 'i')
 					state = STATE_BCOM_I;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 
@@ -310,22 +299,22 @@ int scanner(char *buffer){
 			case STATE_BCOM_I :
 				if(c == 'n')
 					state = STATE_BCOM_N;
-				else{
+				else
 					return TYPE_ERROR;
 				break;
 
 
 			case STATE_BCOM_N :
-				if(isspace(c)){
+				if(isspace(c))
 					state = STATE_BCOM_COM;
-				}else
+				else
 					return TYPE_ERROR;
 				break;
 
 
 			case STATE_BCOM_COM :
 				while(1){
-					if((c = fgetc(f)) == '/n'){
+					if((c = fgetc(f)) == 10){
 						state = STATE_BCOM_COM_EOL;
 						break;
 					}
@@ -375,7 +364,7 @@ int scanner(char *buffer){
 
 			case STATE_BCOM_COM_2 :
 				while(1){
-					if((c = fgetc(f)) == EOL){
+					if((c = fgetc(f)) == 10){
 						state = STATE_BEGIN;
 						break;
 					}
