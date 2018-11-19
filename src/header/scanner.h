@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <symtable.h>
 #include <string.h>
 #include <ctype.h>
-
 
 typedef enum automataState{
     STATE_BEGIN,
@@ -35,7 +33,7 @@ typedef enum automataState{
 	STATE_LESS,
 	STATE_GREAT,
 	STATE_NEG,
-
+    STATE_QUOT,
 } automataState;
 
 typedef enum tokenType{
@@ -53,6 +51,9 @@ typedef enum tokenType{
     TYPE_NEG_EQUAL,     //  !=
     TYPE_L_BRE,         //  (
     TYPE_R_BRE,         //  )
+    TYPE_COMMA,          //  ,
+    TYPE_QUOT,          //  "
+    TYPE_QUOT_EMPTY,    //  ""
     TYPE_L_COM,			//  Line Comment
     TYPE_B_COM,			//	Block Comment
     TYPE_INT,			//  Integer
@@ -61,6 +62,9 @@ typedef enum tokenType{
 	TYPE_FLOAT_EXPO,	//	Float with exponential (decimal number)
 	TYPE_ID,			//	ID of variable or function
 	TYPE_FUNC_ID,		//	ID of function ( ? or ! at end )
+    TYPE_KEYWORD,       //  Keyword
+    TYPE_PRE_FUNC,      //  Predefined function
+    TYPE_EOL,           //  End of line
     TYPE_EOF,			// 	End of file
 	TYPE_ERROR,			//	Some Error
 
@@ -75,7 +79,7 @@ typedef enum tokenType{
  *	@param	*buffer	Pointer to ...
  *			c		Char to be inserted to buffer
  */
-void firstChar(char *buffer, char c);
+void firstChar(char **buffer, char c);
 
 
 /**
@@ -87,7 +91,7 @@ void firstChar(char *buffer, char c);
  *			c		Char to be inserted to buffer
  *			length	New length of buffer
  */
-void addChar(char *buffer, char c, unsigned length);
+void addChar(char **buffer, char c, unsigned length);
 
 
 /**
@@ -96,4 +100,4 @@ void addChar(char *buffer, char c, unsigned length);
  *	@param	*buffer	Pointer to ...
  *	@return	Number from enum tokenType.
  */
-int scanner(char *buffer);
+int getNextToken(char **buffer,FILE *f);
