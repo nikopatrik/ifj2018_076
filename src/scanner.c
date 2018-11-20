@@ -3,6 +3,10 @@
 
 FILE *f;
 
+static int type_of_token = -1;
+
+unsigned length;
+
 void firstChar(char **buffer, char c)
 {
     *buffer = (char*)malloc(2 * sizeof(char));
@@ -17,10 +21,29 @@ void addChar(char **buffer, char c, unsigned length)
     (*buffer)[length] = '\0';
 }
 
-int getNextToken(char **buffer,FILE *f){
-    automataState state = STATE_BEGIN;
+void ungetToken(char **buffer, int type)
+{
+
+	type_of_token = type; 
+
+}
+
+
+int getNextToken(char **buffer, FILE *f)
+{
+    
+
+	if(type_of_token <> -1){
+		int tmp = type_of_token;
+		type_of_token = -1;
+		return tmp;
+	}
+
+	free(buffer);
+
+	automataState state = STATE_BEGIN;
     char c;
-    unsigned length = 1;
+    length = 1;
     c=fgetc(f);
     while(1){
         switch (state) {
@@ -49,7 +72,7 @@ int getNextToken(char **buffer,FILE *f){
                         return TYPE_L_BRE;
                         break;
                     case ')' :
-                        return TYPE_L_BRE;
+                        return TYPE_R_BRE;
                         break;
                     case '"' :
                         state = STATE_QUOT;

@@ -51,8 +51,8 @@ typedef enum tokenType{
     TYPE_NEG_EQUAL,     //  !=
     TYPE_L_BRE,         //  (
     TYPE_R_BRE,         //  )
-    TYPE_COMMA,          //  ,
-    TYPE_QUOT,          //  "
+    TYPE_COMMA,         //  ,
+    TYPE_QUOT,          //  "	Return string between quotes in 'buffer'
     TYPE_QUOT_EMPTY,    //  ""
     TYPE_L_COM,			//  Line Comment
     TYPE_B_COM,			//	Block Comment
