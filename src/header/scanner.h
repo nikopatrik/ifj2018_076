@@ -45,7 +45,7 @@ typedef enum tokenType{
     TYPE_EQUAL,         //  ==
     TYPE_GREAT,         //  >
     TYPE_LESS,          //  <
-    TYPE_NEG,           //  !
+    // TYPE_NEG,           //  !
     TYPE_GREAT_EQUAL,   //  >=
     TYPE_LESS_EQUAL,    //  <=
     TYPE_NEG_EQUAL,     //  !=
@@ -54,8 +54,6 @@ typedef enum tokenType{
     TYPE_COMMA,         //  ,
     TYPE_QUOT,          //  "	Return string between quotes in 'buffer'
     TYPE_QUOT_EMPTY,    //  ""
-    TYPE_L_COM,			//  Line Comment
-    TYPE_B_COM,			//	Block Comment
     TYPE_INT,			//  Integer
 	TYPE_INT_EXPO,		//	Integer with exponential
     TYPE_FLOAT,			//	Float (decimal number)
