@@ -21,7 +21,7 @@ void addChar(char **buffer, char c, unsigned length)
     (*buffer)[length] = '\0';
 }
 
-void ungetToken(char **buffer, int type)
+void ungetToken(int type)
 {
 
 	type_of_token = type; 

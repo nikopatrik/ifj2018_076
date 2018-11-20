@@ -93,6 +93,14 @@ void firstChar(char **buffer, char c);
  */
 void addChar(char **buffer, char c, unsigned length);
 
+/**
+ *	Function remembers last token and returt it next time again
+ *
+ *	@brief	Receive token and return it at next calling
+ *
+ *	@param	type	Type of returned token
+ */
+void ungetToken(int type);
 
 /**
  *	Function read text and parse it to different types
