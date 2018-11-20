@@ -33,7 +33,7 @@ int getNextToken(char **buffer, FILE *f)
 {
     
 
-	if(type_of_token <> -1){
+	if(type_of_token != -1){
 		int tmp = type_of_token;
 		type_of_token = -1;
 		return tmp;
