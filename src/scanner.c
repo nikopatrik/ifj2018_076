@@ -24,14 +24,13 @@ void addChar(char **buffer, char c, unsigned length)
 void ungetToken(int type)
 {
 
-	type_of_token = type; 
+	type_of_token = type;
 
 }
 
 
 int getNextToken(char **buffer, FILE *f)
 {
-    
 
 	if(type_of_token != -1){
 		int tmp = type_of_token;
@@ -39,7 +38,8 @@ int getNextToken(char **buffer, FILE *f)
 		return tmp;
 	}
 
-	free(buffer);
+	free(*buffer);
+    *buffer = NULL;
 
 	automataState state = STATE_BEGIN;
     char c;
