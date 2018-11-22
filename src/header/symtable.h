@@ -10,8 +10,8 @@
  * @brief Hlavickovy subor tabulky symbolov
  */
 
-#ifndef _TEST_H_
-#define _TEST_H_
+#ifndef _SYMTABLE_H_
+#define _SYMTABLE_H_
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -23,7 +23,7 @@
  */
 struct htab_listitem{
     char* key;      /**< Nazov premennej pouzity na hashovanie */
-    unsigned data;      
+    void *object;
     struct htab_listitem *next;     /**< Ukazatel na dalsi prvok v indexe */
 };
 
@@ -36,6 +36,21 @@ typedef struct hashtable{
     unsigned size;      /**< Celkovy pocet prvkov */
     struct htab_listitem* arr[];    /**< Pole ukazatelov na item */
 } htab_t;
+
+typedef enum ifj18_types{ INT, FLOAT, STRING} TYPES;
+
+typedef struct global_table_object{
+    unsigned params_count;
+    TYPES return_type;
+    htab_t *loc_symtab;
+    bool defined;
+}TGLOBTab;
+
+typedef struct local_table_object{
+    TYPES type;
+    bool initialized;
+}TLOCTab;
+    
 
 
 /**
@@ -54,7 +69,7 @@ htab_t* htab_init(unsigned arr_size);
  * @brief Vytvorenie a inicializacia tabulky na zaklade dat z tabulky t2, t2 zostane prazdna
  * @param newsize Nova velkost
  */
-htab_t* htab_move(unsigned newsize, htab_t* t2);
+htab_t* htab_move(unsigned newsize, htab_t* t2,void* (*copy_deep)(void*));
 
 /**
  * @brief Vracia pocet prvkov zoznamu
@@ -70,7 +85,7 @@ unsigned htab_bucket_count(htab_t* t); //arr_size
  * @brief Hlada slovo v tabulke, ak ho najde zvacsi data, inak ho vlozi do tabulky
  * @param *key Retazec
  */
-struct htab_listitem* htab_lookup_add(htab_t *t, const char* key);
+struct htab_listitem* htab_lookup_add(htab_t *t, const char* key,void* (*o_create)());
 
 /**
  * @brief Hlada slovo v tabulke, ak najde vrati pointer, inak NULL
@@ -82,7 +97,7 @@ struct htab_listitem* htab_find(htab_t *t, const char* key);
  * @brief Zavola funkciu pre kazdy prvok tabulky
  * @param *func Ukazatel na funkciu
  */
-void htab_foreach(htab_t* t, void (*func)(const char *, unsigned *));
+void htab_foreach(htab_t* t, void (*func)(const char *, void*));
 
 /**
  * @brief Vyhlada a vymaze zadane slovo z tabulky
@@ -99,3 +114,26 @@ void htab_clear(htab_t* t);
  * @brief Uvolni alokovanu pamat pre tabulku
  */
 void htab_free(htab_t* t);
+
+/**
+ * @brief Alokuje pamat pre struktur globalne tabulky
+ */
+void* glob_create();
+
+/**
+ * @brief Inicializuje strukturu
+ */
+void glob_init(TGLOBTab *t, unsigned params_count, TYPES return_type,
+        htab_t *loc_symtab, bool defined);
+
+/**
+ * @brief Alokuje pamat pre struktur lokalnej tabulky
+ */
+void* loc_create();
+
+/**
+ * @brief Inicilizuje strukuturu lokalnej tabulky.
+ */
+void loc_init(TLOCTab *t, TYPES type, bool initialized);
+
+#endif

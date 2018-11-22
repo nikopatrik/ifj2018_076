@@ -10,9 +10,10 @@
  * @brief Implementacia tabulky symbolov pomocou hashovacej tabulky
  */
 
-#include "symtable.h"
+#include "header/symtable.h"
 
-unsigned htab_hash_function(const char *key){
+unsigned htab_hash_function(const char *key)
+{
     unsigned h = 0;
     const unsigned char *p;
     for(p = (const unsigned char*)key; *p != '\0'; p++)
@@ -20,7 +21,8 @@ unsigned htab_hash_function(const char *key){
     return h;
 }
 
-htab_t* htab_init(unsigned arr_size){
+htab_t* htab_init(unsigned arr_size)
+{
     //Alokacia- velkost tabulky + velkost (size) itemov
     htab_t* htab = (htab_t *) malloc(sizeof(htab_t) + arr_size*sizeof(struct htab_listitem *));
 
@@ -35,7 +37,8 @@ htab_t* htab_init(unsigned arr_size){
     return htab;
 }
 
-htab_t* htab_move(unsigned newsize, htab_t* t2){
+htab_t* htab_move(unsigned newsize, htab_t* t2,void* (*copy_deep)(void*))
+{
     
     htab_t *t = htab_init(newsize);
 
@@ -50,8 +53,8 @@ htab_t* htab_move(unsigned newsize, htab_t* t2){
         item = t2->arr[i];
         //Iteracia zoznamom prida slovo do noveho zoznamu, skopiruje data
         while(item != NULL){
-            temp = htab_lookup_add(t, item->key);
-            temp->data = item->data;
+            temp = htab_lookup_add(t, item->key,NULL);
+            temp->object = copy_deep(item->object);
             item = item->next;
         }
         t->size++;
@@ -69,7 +72,8 @@ unsigned htab_bucket_count(htab_t* t){
     return t->arr_size;
 }
 
-struct htab_listitem* htab_lookup_add(htab_t* t, const char* key){
+struct htab_listitem* htab_lookup_add(htab_t* t, const char* key, void* (*o_create)())
+{
     
     if(t == NULL || key == NULL)
         return NULL;
@@ -83,7 +87,6 @@ struct htab_listitem* htab_lookup_add(htab_t* t, const char* key){
     //Cyklus ktory hlada zhodu, pri zhode inc data a returne item
     while(item != NULL){
         if(!strcmp(key, item->key)){
-            item->data++;
             return item;
         }
         previous = item;
@@ -106,7 +109,10 @@ struct htab_listitem* htab_lookup_add(htab_t* t, const char* key){
     //Nastavenie novych dat itemu
     strcpy(new_item->key, key);
     new_item->next = NULL;
-    new_item->data = 1;
+    if(o_create != NULL)
+        new_item->object = o_create();
+    else
+        new_item->object = NULL;
     t->size++;
 
     if(previous == NULL){
@@ -138,7 +144,7 @@ struct htab_listitem* htab_find(htab_t* t, const char* key){
     return item;
 }
 
-void htab_foreach(htab_t* t, void(*func)(const char *, unsigned *)){
+void htab_foreach(htab_t* t, void(*func)(const char *, void*)){
     
     if(t == NULL)
         return;
@@ -151,7 +157,7 @@ void htab_foreach(htab_t* t, void(*func)(const char *, unsigned *)){
             item = t->arr[i];
             //Iteruj cez zoznam
             while(item != NULL){
-                func(item->key, &item->data); //Zavolaj funkciu pre kazdy item
+                func(item->key, item->object); //Zavolaj funkciu pre kazdy item
                 item = item->next;
             }
         }
@@ -170,6 +176,7 @@ bool htab_remove(htab_t* t, const char* key){
     while(item != NULL){
         if(!strcmp(key, item->key)){ //Ak zhoda
             free(item->key); // Uvolni key
+            free(item->object);
             t->size--; // Zmensi pocet itemov
             if(previous == NULL) //Ak je prvy, na zaciatok prirad next
                 t->arr[i]=item->next; 
@@ -199,6 +206,7 @@ void htab_clear(htab_t* t){
         while(item != NULL){
             temp = item->next;
             free(item->key);
+            free(item->object);
             free(item);
             t->size--;
             item = temp;
@@ -217,3 +225,33 @@ void htab_free(htab_t* t){
     free(t);
     t = NULL;
 }
+
+void* glob_create()
+{
+    TGLOBTab *tmp = malloc(sizeof(struct global_table_object));
+    tmp->defined = true;
+    return tmp;
+}
+
+void glob_init(TGLOBTab *t, unsigned params_count, TYPES return_type,
+        htab_t *loc_symtab, bool defined)
+{
+    t->params_count = params_count;
+    t->return_type = return_type;
+    t->loc_symtab = loc_symtab;
+    t->defined = defined;
+}
+
+void* loc_create()
+{
+    TLOCTab *tmp = malloc(sizeof(struct global_table_object));
+    tmp->initialized = false;
+    return tmp;
+}
+
+void loc_init(TLOCTab *t, TYPES type, bool initialized)
+{
+    t->type = type;
+    t->initialized = initialized;
+}
+
