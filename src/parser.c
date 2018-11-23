@@ -6,37 +6,37 @@
 
 #include "header/parser.h"
 
-bool parse(htab_t *sym_tab, FILE *f)
+bool parse(htab_t *sym_tab)
 {
-    char *buffer;
-    tokenType token = getNextToken(&buffer, f);
-    return st_list(&token, &buffer, f);
+    char *buffer = NULL;
+    tokenType token = getNextToken(&buffer);
+    return st_list(&token, &buffer);
 }
 
-bool st_list(tokenType* token, char** buffer, FILE* f)
+bool st_list(tokenType* token, char** buffer)
 {
     //////////////////////////////////////////////////// 01
     if(*token != TYPE_EOF)
-        return (stat(token, buffer, f) && st_list(token, buffer, f));  //<STAT> <ST-LIST>
+        return (stat(token, buffer) && st_list(token, buffer));  //<STAT> <ST-LIST>
     else
     //////////////////////////////////////////////////// 02
         return true;                        //EOF
 }
 
-bool stat(tokenType* token, char** buffer,FILE* f)
+bool stat(tokenType* token, char** buffer)
 {
     //////////////////////////////////////////////////// 03
     if(*token == TYPE_ID){                   //ID
-        *token = getNextToken(buffer, f);
-        if(id_item(token, buffer,f))        //<ID-ITEM>
+        *token = getNextToken(buffer);
+        if(id_item(token, buffer))        //<ID-ITEM>
             return true;
         else
             return false;
     }
     //////////////////////////////////////////////////// 04
     if(*token == TYPE_FUNC_ID || *token == TYPE_PRE_FUNC){              //FUNC_ID
-        *token = getNextToken(buffer, f);
-        if(func(token, buffer, f))          //<FUNC>
+        *token = getNextToken(buffer);
+        if(func(token, buffer))          //<FUNC>
             return true;
         else
             return false;
@@ -44,18 +44,18 @@ bool stat(tokenType* token, char** buffer,FILE* f)
 
     ///////////////////////////////////////////////////// 05
     if(*token == TYPE_KEYWORD && !strcmp(*buffer, "if")){     // IF
-        *token = getNextToken(buffer, f);
-        if(expr(token, buffer, f))       //<EXPRESSION>
+        *token = getNextToken(buffer);
+        if(expr(token, buffer))       //<EXPRESSION>
             if(*token == TYPE_KEYWORD && !strcmp(*buffer, "then")){    //THEN
-                *token = getNextToken(buffer, f);
+                *token = getNextToken(buffer);
                 if(*token == TYPE_EOL){      //EOL
-                    *token = getNextToken(buffer, f);
-                    if(else_st_list(token, buffer, f))     //<ELSE-ST-LIST>
+                    *token = getNextToken(buffer);
+                    if(else_st_list(token, buffer))     //<ELSE-ST-LIST>
                         if(*token == TYPE_EOL){      //EOL
-                            *token = getNextToken(buffer, f);
-                            if(end_st_list(token, buffer, f))    //<END-ST-LIST>
+                            *token = getNextToken(buffer);
+                            if(end_st_list(token, buffer))    //<END-ST-LIST>
                                 if(*token == TYPE_EOL){      //EOL
-                                    *token = getNextToken(buffer, f);
+                                    *token = getNextToken(buffer);
                                     return true;
                                 }
                         }
@@ -65,15 +65,15 @@ bool stat(tokenType* token, char** buffer,FILE* f)
     }
     ////////////////////////////////////////////////////// 06
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "while")){      //WHILE 
-        *token = getNextToken(buffer, f);
-        if(expr(token, buffer, f))       //<EXPRESSION>
+        *token = getNextToken(buffer);
+        if(expr(token, buffer))       //<EXPRESSION>
             if(*token == TYPE_KEYWORD && !strcmp(*buffer, "do")){    //THEN
-                *token = getNextToken(buffer, f);
+                *token = getNextToken(buffer);
                 if(*token == TYPE_EOL){      //EOL
-                    *token = getNextToken(buffer, f);
-                    if(end_st_list(token, buffer, f))     //<END-ST-LIST>
+                    *token = getNextToken(buffer);
+                    if(end_st_list(token, buffer))     //<END-ST-LIST>
                         if(*token == TYPE_EOL){      //EOL
-                            *token = getNextToken(buffer, f);
+                            *token = getNextToken(buffer);
                             return true;
                         }
                 }
@@ -82,72 +82,72 @@ bool stat(tokenType* token, char** buffer,FILE* f)
     }
     ////////////////////////////////////////////////////// 07
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "def")){      //DEF
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         if(*token == TYPE_ID){       //ID
-            *token = getNextToken(buffer, f);
-            if(func(token, buffer, f) && end_st_list(token, buffer, f))   // <FUNC> && <END_ST_LIST>
+            *token = getNextToken(buffer);
+            if(func(token, buffer) && end_st_list(token, buffer))   // <FUNC> && <END_ST_LIST>
                 if(*token == TYPE_EOL)   //EOL
                     return true;
         }
         return false;
     }
     else if(*token == TYPE_EOL){
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     return false;
 }
 
-bool else_st_list(tokenType* token, char** buffer, FILE* f)
+bool else_st_list(tokenType* token, char** buffer)
 {
     //////////////////////////////////////////////////////// 08
     if(*token == TYPE_KEYWORD && !strcmp(*buffer, "else")){   //ELSE
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }   
     //////////////////////////////////////////////////////// 09
     else{
-        if(stat(token, buffer, f) && else_st_list(token, buffer, f))   //<STAT> && <ELSE_ST_LIST>
+        if(stat(token, buffer) && else_st_list(token, buffer))   //<STAT> && <ELSE_ST_LIST>
             return true;
         else
             return false;
     }
 }
 
-bool end_st_list(tokenType* token, char** buffer, FILE* f)
+bool end_st_list(tokenType* token, char** buffer)
 {
     //////////////////////////////////////////////////////// 10
     if(*token == TYPE_KEYWORD && !strcmp(*buffer, "end")){     //END
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }       
     //////////////////////////////////////////////////////// 11
     else{ 
-        if(stat(token, buffer, f) && end_st_list(token, buffer, f))   //<STAT> && <END_ST_LIST>
+        if(stat(token, buffer) && end_st_list(token, buffer))   //<STAT> && <END_ST_LIST>
             return true;
         else
             return false;
     }
 }
 
-bool id_item(tokenType* token, char** buffer, FILE* f)
+bool id_item(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 12
     if(*token == TYPE_ASSIGN){                   // =
-        *token = getNextToken(buffer, f);
-        if(assign(token, buffer, f))            //<ASSIGN>
+        *token = getNextToken(buffer);
+        if(assign(token, buffer))            //<ASSIGN>
             return true;
         else
             return false;
     }
     //////////////////////////////////////// 13
     else if(*token == TYPE_EOL){                 //EOL
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 14
     else{
-        if(func(token, buffer, f))              //<FUNC>
+        if(func(token, buffer))              //<FUNC>
             return true;
         else
             return false;
@@ -155,27 +155,26 @@ bool id_item(tokenType* token, char** buffer, FILE* f)
     
 }
 
-bool assign(tokenType* token, char** buffer, FILE* f)
+bool assign(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 15
     if(*token == TYPE_ID){                       //ID
-        *token = getNextToken(buffer, f);
-        if(next(token, buffer, f))            //<NEXT>
+        if(next(token, buffer))            //<NEXT>
             return true;
         else
             return false;
     }
     //////////////////////////////////////// 16
     else if(*token == TYPE_FUNC_ID || *token == TYPE_PRE_FUNC){             //FUNC_ID
-        *token = getNextToken(buffer, f);
-        if(func(token, buffer, f))              //<FUNC>
+        *token = getNextToken(buffer);
+        if(func(token, buffer))              //<FUNC>
             return true;
         else
             return false;
     }
     //////////////////////////////////////// 17
     else{
-        if(expr(token,buffer,f))                //<EXPR>
+        if(expr(token, buffer))                //<EXPR>
             return true;
         else
             return false;
@@ -183,33 +182,38 @@ bool assign(tokenType* token, char** buffer, FILE* f)
     
 }
 
-bool next(tokenType* token, char** buffer, FILE* f)
+bool next(tokenType* token, char** buffer)
 {
+    tokenType temp = *token;
+    char** temp_buff = buffer;
+    *token = getNextToken(buffer);
     //////////////////////////////////////// 18
     if(*token == TYPE_EOL){                      //EOL
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 19
     else if(*token >= TYPE_PLUS && *token <= TYPE_NEG_EQUAL){     //SIGN
-        if(expr(token, buffer, f))                              //<EXPR>
+        ungetToken(temp, *temp_buff);
+        ungetToken(*token, *buffer);
+        if(expr(token, buffer))                              //<EXPR>
             return true;
         else
             return false;
     }
     //////////////////////////////////////// 20
     else if(*token == TYPE_ID){  //ID|VALUE
-        if(next_param(token, buffer, f))             //<PARAM>
+        if(next_param(token, buffer))             //<PARAM>
             return true;
         else
             return false;
     }
     //////////////////////////////////////// 21
     else if(*token == TYPE_L_BRE){               // (
-        *token = getNextToken(buffer, f);
-        if(bracket(token, buffer, f))         //<BRACKET>
+        *token = getNextToken(buffer);
+        if(bracket(token, buffer))         //<BRACKET>
             if(*token == TYPE_EOL){             //EOL
-                *token = getNextToken(buffer, f);
+                *token = getNextToken(buffer);
                 return true;
             }
         return false;
@@ -218,38 +222,38 @@ bool next(tokenType* token, char** buffer, FILE* f)
         return false;
 }
 
-bool func(tokenType* token, char** buffer, FILE* f)
+bool func(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 22
     if(*token == TYPE_L_BRE){               // (
-        *token = getNextToken(buffer, f);
-        if(bracket(token, buffer, f))         //<BRACKET
+        *token = getNextToken(buffer);
+        if(bracket(token, buffer))         //<BRACKET
             if(*token == TYPE_EOL){             //EOL
-                *token = getNextToken(buffer, f);
+                *token = getNextToken(buffer);
                 return true;
             }
         return false;
     //////////////////////////////////////// 23
     }
     else if(*token == TYPE_EOL){            // EOL
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 24
     else{
-        if(param(token, buffer, f))             //<PARAM>
+        if(param(token, buffer))             //<PARAM>
             return true;
         else
             return false;
     }
 }
 
-bool param(tokenType* token, char** buffer, FILE* f)
+bool param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 25
     if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_QUOT || *token == TYPE_QUOT_EMPTY){   // PARAMETER
-        *token = getNextToken(buffer, f);
-        if(next_param(token, buffer, f))        //<NEXT-PARAM>
+        *token = getNextToken(buffer);
+        if(next_param(token, buffer))        //<NEXT-PARAM>
             return true;
         else
             return false;
@@ -258,17 +262,17 @@ bool param(tokenType* token, char** buffer, FILE* f)
         return false;
 }
 
-bool next_param(tokenType* token, char** buffer, FILE* f)
+bool next_param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 26
     if(*token == TYPE_EOL){                      //EOL
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 27
     else if(*token == TYPE_COMMA){               // ,
-        *token = getNextToken(buffer, f);
-        if(param(token, buffer, f))             //<PARAM>
+        *token = getNextToken(buffer);
+        if(param(token, buffer))             //<PARAM>
             return true;
         else
             return false;
@@ -277,26 +281,26 @@ bool next_param(tokenType* token, char** buffer, FILE* f)
         return false;
 }
 
-bool bracket(tokenType* token, char** buffer, FILE* f){
+bool bracket(tokenType* token, char** buffer){
     //////////////////////////////////////// 28
     if(*token == TYPE_R_BRE){                    // )
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 29
     else
-        if(brc_param(token, buffer, f))         //<BRC-PARAM>
+        if(brc_param(token, buffer))         //<BRC-PARAM>
             return true;
         else
             return false;
 }
 
-bool brc_param(tokenType* token, char** buffer, FILE* f)
+bool brc_param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 30
     if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_QUOT || *token == TYPE_QUOT_EMPTY){   // PARAMETER
-        *token = getNextToken(buffer, f);
-        if(next_brc_param(token, buffer, f))    //<NEXT-BRC-PARAM>
+        *token = getNextToken(buffer);
+        if(next_brc_param(token, buffer))    //<NEXT-BRC-PARAM>
             return true;
         else
             return false;
@@ -305,17 +309,17 @@ bool brc_param(tokenType* token, char** buffer, FILE* f)
         return false;
 }
 
-bool next_brc_param(tokenType* token, char** buffer, FILE* f)
+bool next_brc_param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 31
     if(*token == TYPE_R_BRE){                    // )
-        *token = getNextToken(buffer, f);
+        *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 32
     else if(*token == TYPE_COMMA){              // ,
-        *token = getNextToken(buffer, f);
-        if(brc_param(token, buffer, f))         //<BRC-PARAM>
+        *token = getNextToken(buffer);
+        if(brc_param(token, buffer))         //<BRC-PARAM>
             return true;
         else
             return false;
@@ -325,8 +329,8 @@ bool next_brc_param(tokenType* token, char** buffer, FILE* f)
 }
 
 
-bool expr(tokenType* token, char** buffer, FILE* f)
+bool expr(tokenType* token, char** buffer)
 {
-    *token = getNextToken(buffer, f);
+    *token = getNextToken(buffer);
     return true;
 }
