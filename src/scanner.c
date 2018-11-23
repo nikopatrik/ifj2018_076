@@ -51,7 +51,7 @@ int getNextToken(char **buffer)
 	}
 
 	//free(*buffer);
-    //*buffer = NULL;
+    *buffer = NULL;
 
 	automataState state = STATE_BEGIN;
     char c;
@@ -303,7 +303,7 @@ int getNextToken(char **buffer)
                             return TYPE_KEYWORD;
 
                         if(strcmp(*buffer,"nil") == 0)
-                            return TYPE_NIL
+                            return TYPE_NIL;
 
                         if( strcmp(*buffer,"print") == 0 ||
                             strcmp(*buffer,"length")== 0 ||

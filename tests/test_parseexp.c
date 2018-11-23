@@ -6,12 +6,12 @@
 
 int main()
 {
-    TEvalStack stack;
-    es_init(&stack);
-
-    if(expression_parse(&stack, stdin, TYPE_EOL, NULL))
+    myQueueInit();
+    if(expression_parse( TYPE_KEYWORD, "then"))
         puts("Syntax correct!!!");
     else
         puts("Syntax not correct!!!");
+
+    myQueueFree();
     return 0;
 }

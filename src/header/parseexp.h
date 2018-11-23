@@ -22,10 +22,7 @@ typedef struct eval_stack {
     unsigned count;
 }TEvalStack;
 
-void es_init(TEvalStack *t);
-
-bool expression_parse(TEvalStack *t, FILE *f, tokenType end,
-        char* end_token_attribute);
+bool expression_parse(tokenType end, char* end_token_attribute);
 
 
 #endif
