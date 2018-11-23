@@ -7,37 +7,37 @@
 #include "scanner.h"
 #include "symtable.h"
 
-#ifndef _PARSERH_
-#define _PARSERH_
+#ifndef _PARSER_H_
+#define _PARSER_H_
 
-bool parse(htab_t*, FILE*);
+bool parse(htab_t*);
 
-bool st_list(tokenType*, char**, FILE*);
+bool st_list(tokenType*, char**);
 
-bool stat(tokenType*, char**, FILE*);
+bool stat(tokenType*, char**);
 
-bool else_st_list(tokenType*, char**, FILE*);
+bool else_st_list(tokenType*, char**);
 
-bool end_st_list(tokenType*, char**, FILE*);
+bool end_st_list(tokenType*, char**);
 
-bool id_item(tokenType*, char**, FILE*);
+bool id_item(tokenType*, char**);
 
-bool assign(tokenType*, char**, FILE*);
+bool assign(tokenType*, char**);
 
-bool next(tokenType*, char**, FILE*);
+bool next(tokenType*, char**);
 
-bool func(tokenType*, char**, FILE*);
+bool func(tokenType*, char**);
 
-bool param(tokenType*, char**, FILE*);
+bool param(tokenType*, char**);
 
-bool next_param(tokenType*, char**, FILE*);
+bool next_param(tokenType*, char**);
 
-bool bracket(tokenType*, char**, FILE*);
+bool bracket(tokenType*, char**);
 
-bool brc_param(tokenType*, char**, FILE*);
+bool brc_param(tokenType*, char**);
 
-bool next_brc_param(tokenType*, char**, FILE*);
+bool next_brc_param(tokenType*, char**);
 
-bool expr(tokenType*, char**, FILE*);
+bool expr(tokenType*, char**);
 
 #endif
