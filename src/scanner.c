@@ -1,11 +1,23 @@
 #include "header/list.h"
+#include "header/queue.h"
 #include "header/scanner.h"
 
-FILE *f;
 
-static int type_of_token = -1;
+static tQueue* my_queue;
 
 unsigned length;
+
+void myQueueInit(){
+    my_queue = (tQueue*) malloc(sizeof(tQueue));
+    if(my_queue == NULL)
+        return;
+
+    queueInit(my_queue);
+}
+
+void myQueueFree(){
+    free(my_queue);
+}
 
 void firstChar(char **buffer, char c)
 {
@@ -21,25 +33,25 @@ void addChar(char **buffer, char c, unsigned length)
     (*buffer)[length] = '\0';
 }
 
-void ungetToken(int type)
+void ungetToken(int type, char *buffer)
 {
-
-	type_of_token = type;
-
+    queueUp(my_queue, buffer, type);
 }
 
 
-int getNextToken(char **buffer, FILE *f)
+int getNextToken(char **buffer)
 {
+    FILE* f = stdin;
 
-	if(type_of_token != -1){
-		int tmp = type_of_token;
-		type_of_token = -1;
-		return tmp;
+	if(!queueEmpty(my_queue)){
+        //free(*buffer);
+        tokenType temp = my_queue->temp_arr[my_queue->f_index];
+        queueGet(my_queue, buffer);
+		return temp;
 	}
 
-	free(*buffer);
-    *buffer = NULL;
+	//free(*buffer);
+    //*buffer = NULL;
 
 	automataState state = STATE_BEGIN;
     char c;
@@ -286,10 +298,12 @@ int getNextToken(char **buffer, FILE *f)
                             strcmp(*buffer,"end")   == 0 ||
                             strcmp(*buffer,"if")    == 0 ||
                             strcmp(*buffer,"not")   == 0 ||
-                            strcmp(*buffer,"nil")   == 0 ||
                             strcmp(*buffer,"then")  == 0 ||
                             strcmp(*buffer,"while") == 0 )
                             return TYPE_KEYWORD;
+
+                        if(strcmp(*buffer,"nil") == 0)
+                            return TYPE_NIL
 
                         if( strcmp(*buffer,"print") == 0 ||
                             strcmp(*buffer,"length")== 0 ||

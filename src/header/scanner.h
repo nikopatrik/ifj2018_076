@@ -3,6 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifndef _SCANNER_H_
+#define _SCANNER_H_
+
 typedef enum automataState{
     STATE_BEGIN,
     STATE_INT,
@@ -65,9 +68,13 @@ typedef enum tokenType{
     TYPE_EOL,           //  End of line
     TYPE_EOF,			// 	End of file
 	TYPE_ERROR,			//	Some Error
+    TYPE_NIL            //  nil
 
 } tokenType;
 
+void myQueueInit();
+
+void myQueueFree();
 
 /**
  *	Function allocate memory for buffer, where it adds first char from reading text
@@ -98,7 +105,7 @@ void addChar(char **buffer, char c, unsigned length);
  *
  *	@param	type	Type of returned token
  */
-void ungetToken(int type);
+void ungetToken(int type, char *buffer);
 
 /**
  *	Function read text and parse it to different types
@@ -106,4 +113,6 @@ void ungetToken(int type);
  *	@param	*buffer	Pointer to ...
  *	@return	Number from enum tokenType.
  */
-int getNextToken(char **buffer,FILE *f);
+int getNextToken(char **buffer);
+
+#endif
