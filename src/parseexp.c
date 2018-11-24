@@ -249,6 +249,6 @@ void rule_brackets(TEvalStack *t)
     es_top_pop(t);
     
     es_push(t,nonterm.is_terminal,nonterm.is_nonterminal,nonterm.token,
-            nonterm.token_attribute,nonterm.info);
+            nonterm.token_attribute,127);
 }
     
