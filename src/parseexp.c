@@ -3,6 +3,7 @@
 
 #include "header/scanner.h"
 #include "header/parseexp.h"
+#include "header/garbagecollector.h"
 
 // TODO
 // Implementovat pracu s tabulkov symbolov
@@ -39,7 +40,7 @@ void es_init(TEvalStack *t)
 void es_push(TEvalStack *t, bool is_terminal, bool is_nonterminal,
        tokenType token, char *attribute, char info)
 {
-    TStackItemPtr tmp = malloc(sizeof(struct stack_item));
+    TStackItemPtr tmp = gb_malloc(sizeof(struct stack_item));
     if( tmp == NULL)
         return;
     tmp->is_terminal = is_terminal;
@@ -58,7 +59,7 @@ TStackItem es_top_pop(TEvalStack *t)
     TStackItem item = *(t->stack_top);
     TStackItemPtr tmp = t->stack_top;
     t->stack_top = tmp->prev;
-    free(tmp);
+    gb_free(tmp);
     t->count--;
     return item;
 }
@@ -84,7 +85,7 @@ void es_terminal_preinsert(TEvalStack *t,bool is_terminal,
     if(prev == NULL)
         es_push(t,is_terminal,is_nonterminal,token,attribute,info);
     else {
-        TStackItemPtr newitem = malloc(sizeof(
+        TStackItemPtr newitem = gb_malloc(sizeof(
                     struct stack_item));
         if(newitem == NULL)
             return;
