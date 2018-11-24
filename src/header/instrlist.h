@@ -51,5 +51,6 @@ void DLActualize (tDLList *, char *);
 void DLSucc (tDLList *);
 void DLPred (tDLList *);
 int DLActive (tDLList *);
+void DLPrintList (tDLList *);
 
 /* Konec hlavičkového souboru c206.h */

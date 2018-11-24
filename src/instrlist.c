@@ -509,4 +509,13 @@ int DLActive (tDLList *L) {
   return L->Act == NULL ? 0 : 1;
 }
 
+void DLPrintList (tDLList *L){
+    tDLElemPtr TMP;
+    TMP = L->First;
+    while(TMP){
+        printf("%s\n",TMP->instruction);
+        TMP = TMP->rptr;
+    }
+}
+
 /* Konec c206.c*/
