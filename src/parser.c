@@ -44,40 +44,35 @@ bool stat(tokenType* token, char** buffer)
 
     ///////////////////////////////////////////////////// 05
     if(*token == TYPE_KEYWORD && !strcmp(*buffer, "if")){     // IF
-        *token = getNextToken(buffer);
-        if(expr(token, buffer))       //<EXPRESSION>
-            if(*token == TYPE_KEYWORD && !strcmp(*buffer, "then")){    //THEN
+        if(expression_parse(TYPE_KEYWORD, "then"))       //<EXPRESSION> expecting THEN
+            *token = getNextToken(buffer);
+            if(*token == TYPE_EOL){      //EOL
                 *token = getNextToken(buffer);
-                if(*token == TYPE_EOL){      //EOL
-                    *token = getNextToken(buffer);
-                    if(else_st_list(token, buffer))     //<ELSE-ST-LIST>
-                        if(*token == TYPE_EOL){      //EOL
-                            *token = getNextToken(buffer);
-                            if(end_st_list(token, buffer))    //<END-ST-LIST>
-                                if(*token == TYPE_EOL){      //EOL
-                                    *token = getNextToken(buffer);
-                                    return true;
-                                }
-                        }
-                }
+                if(else_st_list(token, buffer))     //<ELSE-ST-LIST>
+                    if(*token == TYPE_EOL){      //EOL
+                        *token = getNextToken(buffer);
+                        if(end_st_list(token, buffer))    //<END-ST-LIST>
+                            if(*token == TYPE_EOL){      //EOL
+                                *token = getNextToken(buffer);
+                                return true;
+                            }
+                    }
             }
         return false;
     }
     ////////////////////////////////////////////////////// 06
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "while")){      //WHILE 
-        *token = getNextToken(buffer);
-        if(expr(token, buffer))       //<EXPRESSION>
-            if(*token == TYPE_KEYWORD && !strcmp(*buffer, "do")){    //THEN
+        if(expression_parse(TYPE_KEYWORD, "do")){       //<EXPRESSION>
+            *token = getNextToken(buffer);
+            if(*token == TYPE_EOL){      //EOL
                 *token = getNextToken(buffer);
-                if(*token == TYPE_EOL){      //EOL
-                    *token = getNextToken(buffer);
-                    if(end_st_list(token, buffer))     //<END-ST-LIST>
-                        if(*token == TYPE_EOL){      //EOL
-                            *token = getNextToken(buffer);
-                            return true;
-                        }
-                }
+                if(end_st_list(token, buffer))     //<END-ST-LIST>
+                    if(*token == TYPE_EOL){      //EOL
+                        *token = getNextToken(buffer);
+                        return true;
+                    }
             }
+        }
         return false;
     }
     ////////////////////////////////////////////////////// 07
@@ -173,9 +168,38 @@ bool assign(tokenType* token, char** buffer)
             return false;
     }
     //////////////////////////////////////// 17
-    else{
-        if(expr(token, buffer))                //<EXPR>
+    else if(*token == TYPE_L_BRE){
+        ungetToken(*token, *buffer);
+        if(expression_parse(TYPE_EOL, NULL)){                //<EXPR>
+            *token = getNextToken(buffer);
             return true;
+        }
+        else
+            return false;
+    }
+    else if(*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO){
+        tokenType temp = *token;
+        char* temp_buff = *buffer;
+        *token = getNextToken(buffer);
+        if(*token == TYPE_EOL)
+            return true;
+        else{
+            ungetToken(temp, temp_buff);
+            ungetToken(*token, *buffer);
+            if(expression_parse(TYPE_EOL, NULL)){
+                *token = getNextToken(buffer);
+                return true;
+            }
+            else
+                return false;
+            }
+    }
+    else{
+        ungetToken(*token, *buffer);
+        if(expression_parse(TYPE_EOL, NULL)){                //<EXPR>
+            *token = getNextToken(buffer);
+            return true;
+        }
         else
             return false;
     }
@@ -185,7 +209,7 @@ bool assign(tokenType* token, char** buffer)
 bool next(tokenType* token, char** buffer)
 {
     tokenType temp = *token;
-    char** temp_buff = buffer;
+    char* temp_buff = *buffer;
     *token = getNextToken(buffer);
     //////////////////////////////////////// 18
     if(*token == TYPE_EOL){                      //EOL
@@ -194,15 +218,18 @@ bool next(tokenType* token, char** buffer)
     }
     //////////////////////////////////////// 19
     else if(*token >= TYPE_PLUS && *token <= TYPE_NEG_EQUAL){     //SIGN
-        ungetToken(temp, *temp_buff);
+        ungetToken(temp, temp_buff);
         ungetToken(*token, *buffer);
-        if(expr(token, buffer))                              //<EXPR>
+        if(expression_parse(TYPE_EOL, NULL)){                  //<EXPR>
+            *token = getNextToken(buffer);
             return true;
+        }
         else
             return false;
     }
     //////////////////////////////////////// 20
     else if(*token == TYPE_ID){  //ID|VALUE
+        *token = getNextToken(buffer);
         if(next_param(token, buffer))             //<PARAM>
             return true;
         else
@@ -326,11 +353,4 @@ bool next_brc_param(tokenType* token, char** buffer)
     }
     else
         return false;
-}
-
-
-bool expr(tokenType* token, char** buffer)
-{
-    *token = getNextToken(buffer);
-    return true;
 }

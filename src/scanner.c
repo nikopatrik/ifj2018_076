@@ -116,22 +116,51 @@ int getNextToken(char **buffer)
                         }else if((c >= 'a' && c <= 'z') || c == '_'){
 							state = STATE_ID;
                         }
+                        else
+                            return TYPE_ERROR;
                         break;
                 }
             break;
 
             case STATE_QUOT :
+		/*		// Empty quotes
                 if((c=fgetc(f)) == '"')
                     return TYPE_QUOT_EMPTY;
                 else{
                     firstChar(buffer,c);
                 }
-
+*/
                 while((c=fgetc(f)) != '"'){
-                    length ++;
-                    addChar(buffer,c,length);
+					//	If there is no second quote, end at EOF with error
+					if(c == EOF)
+						return TYPE_ERROR;
+					//	'\"' does not end string
+					else if(c == '\\'){
+						c = fgetc(f);
+						// '"' have to be next char after '\'
+						if(c != '"'){
+							ungetc(c, f);
+                            if(length == 1){
+                                firstChar(buffer, '\\');
+                                length++;
+                            }else{
+                                addChar(buffer,'\\',++length);
+                                length++;
+                            }
+                        }
+                    }
+                    if(length == 1){
+                        firstChar(buffer, c);
+                        length++;
+                    }else{
+                        addChar(buffer,c,length);
+                        length ++;
+                    }
                 }
-                return TYPE_QUOT;
+                if(c == '"' && length == 1)
+                    return TYPE_QUOT_EMPTY;
+                else
+                    return TYPE_QUOT;
 
 
 			case STATE_ASSIGN :
@@ -307,6 +336,9 @@ int getNextToken(char **buffer)
 
                         if( strcmp(*buffer,"print") == 0 ||
                             strcmp(*buffer,"length")== 0 ||
+                            strcmp(*buffer,"inputi")== 0 ||
+                            strcmp(*buffer,"inputs")== 0 ||
+                            strcmp(*buffer,"inputf")== 0 ||
                             strcmp(*buffer,"substr")== 0 ||
                             strcmp(*buffer,"ord")   == 0 ||
                             strcmp(*buffer,"chr")   == 0 )
