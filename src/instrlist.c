@@ -52,7 +52,7 @@
 ** procedury (v jazyce C procedurám odpovídají funkce vracející typ void).
 **/
 
-#include "c206.h"
+#include "header/instrlist.h"
 
 int errflg;
 int solved;
@@ -104,7 +104,47 @@ void DLDisposeList (tDLList *L) {
     L->Last = NULL;
 }
 
-void DLInsertFirst (tDLList *L, char *instruction, unsigned size) {
+void DLPostInsertList (tDLList *L, tDLList *M)
+{
+    if(!L || !M){
+        DLError();
+        return;
+    }
+    if(L->Act == L->Last){
+        L->Last = M->Last;
+        M->First->lptr = L->Act;
+        L->Act->rptr = M->First;
+    }
+    else{
+        M->Last->rptr = L->Act->rptr;
+        L->Act->rptr->lptr = M->Last;
+        L->Act->rptr = M->First;
+        M->First->lptr = L->Act;
+    }
+}
+
+void DLPreInsertList (tDLList *L, tDLList *M)
+{
+    if(!L || !M){
+        DLError();
+        return;
+    }
+
+    if(L->Act == L->First){
+        L->First = M->First;
+        L->Act->lptr = M->Last;
+        M->Last->rptr = L->Act;
+    }
+    else{
+        M->First->lptr = L->Act->lptr;
+        M->Last->rptr = L->Act;
+        L->Act->lptr->rptr = M->First;
+        L->Act->lptr = M->Last;
+    }
+}
+
+
+void DLInsertFirst (tDLList *L, char *instruction) {
 /*
 ** Vloží nový prvek na začátek seznamu L.
 ** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
@@ -119,7 +159,7 @@ void DLInsertFirst (tDLList *L, char *instruction, unsigned size) {
       return;
   }
 
-  New->instruction = malloc(sizeof(char)*size);
+  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -137,7 +177,7 @@ void DLInsertFirst (tDLList *L, char *instruction, unsigned size) {
   L->First = New;
 }
 
-void DLInsertLast(tDLList *L, char *instruction, unsigned size) {
+void DLInsertLast(tDLList *L, char *instruction) {
 /*
 ** Vloží nový prvek na konec seznamu L (symetrická operace k DLInsertFirst).
 ** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
@@ -151,7 +191,7 @@ void DLInsertLast(tDLList *L, char *instruction, unsigned size) {
       return;
   }
 
-  New->instruction = malloc(sizeof(char)*size);
+  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -193,11 +233,14 @@ void DLCopyFirst (tDLList *L, char **val) {
 ** Pokud je seznam L prázdný, volá funkci DLError().
 **/
   if(L->First == NULL){
-    DLError();
-    return;
+      DLError();
+      return;
   }
-  else
-    strcpy(*val,L->First->instruction);
+  else{
+      *val = malloc(sizeof(char)*(strlen(L->First->instruction)+1));
+      strcpy(*val,L->First->instruction);
+  }
+
 }
 
 void DLCopyLast (tDLList *L, char **val) {
@@ -206,11 +249,13 @@ void DLCopyLast (tDLList *L, char **val) {
 ** Pokud je seznam L prázdný, volá funkci DLError().
 **/
   if(L->First == NULL){
-    DLError();
-    return;
+      DLError();
+      return;
   }
-  else
-    strcpy(*val,L->First->instruction);
+  else{
+      *val = malloc(sizeof(char)*(strlen(L->Last->instruction)+1));
+      strcpy(*val,L->Last->instruction);
+  }
 }
 
 void DLDeleteFirst (tDLList *L) {
@@ -331,7 +376,7 @@ void DLPreDelete (tDLList *L) {
   free(Pom);
 }
 
-void DLPostInsert (tDLList *L,  char *instruction, unsigned size) {
+void DLPostInsert (tDLList *L,  char *instruction) {
 /*
 ** Vloží prvek za aktivní prvek seznamu L.
 ** Pokud nebyl seznam L aktivní, nic se neděje.
@@ -348,7 +393,7 @@ void DLPostInsert (tDLList *L,  char *instruction, unsigned size) {
       return;
   }
   //Inicializujem data noveho prvku
-  New->instruction = malloc(sizeof(char)*size);
+  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -369,7 +414,7 @@ void DLPostInsert (tDLList *L,  char *instruction, unsigned size) {
     L->Act->rptr = New;
 }
 
-void DLPreInsert (tDLList *L, char *instruction, unsigned size) {
+void DLPreInsert (tDLList *L, char *instruction) {
 /*
 ** Vloží prvek před aktivní prvek seznamu L.
 ** Pokud nebyl seznam L aktivní, nic se neděje.
@@ -385,7 +430,7 @@ void DLPreInsert (tDLList *L, char *instruction, unsigned size) {
       return;
   }
   //Inicializujem data noveho prvku
-  New->instruction = malloc(sizeof(char)*size);
+  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -412,11 +457,12 @@ void DLCopy (tDLList *L, char **val) {
 ** Pokud seznam L není aktivní, volá funkci DLError ().
 **/
   if(L->Act != NULL){
-    strcpy(*val,L->Act->instruction);
+      *val = malloc(sizeof(char)*(strlen(L->Act->instruction)+1));
+      strcpy(*val,L->Act->instruction);
   }
   else{
-    DLError();
-    return;
+      DLError();
+      return;
   }
 }
 
@@ -426,6 +472,7 @@ void DLActualize (tDLList *L, char  *val) {
 ** Pokud seznam L není aktivní, nedělá nic.
 **/
   if(L->Act != NULL){
+    L->Act->instruction = realloc(L->Act->instruction,(sizeof(char)*(strlen(val)+1)));
     strcpy(L->Act->instruction,val);
   }
 }

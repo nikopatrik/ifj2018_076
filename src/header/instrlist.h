@@ -32,8 +32,10 @@ typedef struct {                                  /* dvousměrně vázaný sezna
                                              /* prototypy jednotlivých funkcí */
 void DLInitList (tDLList *);
 void DLDisposeList (tDLList *);
-void DLInsertFirst (tDLList *, char *,unsigned);
-void DLInsertLast(tDLList *, char *,unsigned);
+void DLPostInsertList (tDLList *, tDLList *);
+void DLPreInsertList (tDLList *, tDLList *);
+void DLInsertFirst (tDLList *, char *);
+void DLInsertLast(tDLList *, char *);
 void DLFirst (tDLList *);
 void DLLast (tDLList *);
 void DLCopyFirst (tDLList *, char **);
@@ -42,8 +44,8 @@ void DLDeleteFirst (tDLList *);
 void DLDeleteLast (tDLList *);
 void DLPostDelete (tDLList *);
 void DLPreDelete (tDLList *);
-void DLPostInsert (tDLList *, char *, unsigned);
-void DLPreInsert (tDLList *, char *, unsigned);
+void DLPostInsert (tDLList *, char *);
+void DLPreInsert (tDLList *, char *);
 void DLCopy (tDLList *, char **);
 void DLActualize (tDLList *, char *);
 void DLSucc (tDLList *);
