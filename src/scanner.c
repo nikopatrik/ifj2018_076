@@ -101,9 +101,9 @@ int getNextToken(char **buffer)
 					case '>' :
 						state = STATE_GREAT;
 						break;
-					// case '!' :
-						// state = STATE_NEG;
-						// break;
+					case '!' :
+						state = STATE_NEG;
+						break;
 					case '#' :
 						state = STATE_LCOM;
 						break;
@@ -190,13 +190,13 @@ int getNextToken(char **buffer)
 				}
 
 
-			// case STATE_NEG :
-				// if((c = fgetc(f)) == '='){
-					// return TYPE_NEG_EQUAL;
-				// }else{
-					// ungetc(c, f);
+			case STATE_NEG :
+				if((c = fgetc(f)) == '='){
+					return TYPE_NEG_EQUAL;
+				}else{
+					ungetc(c, f);
 					// return TYPE_NEG;
-				// }
+				}
 
 
 			case STATE_INT:

@@ -35,7 +35,7 @@ typedef enum automataState{
 	STATE_ASSIGN,
 	STATE_LESS,
 	STATE_GREAT,
-	// STATE_NEG,
+	STATE_NEG,
     STATE_QUOT,
 } automataState;
 
