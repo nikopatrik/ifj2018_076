@@ -1,6 +1,7 @@
 #include "header/list.h"
 #include "header/queue.h"
 #include "header/scanner.h"
+#include "header/garbagecollector.h"
 
 
 static tQueue* my_queue;
@@ -8,7 +9,7 @@ static tQueue* my_queue;
 unsigned length;
 
 void myQueueInit(){
-    my_queue = (tQueue*) malloc(sizeof(tQueue));
+    my_queue = (tQueue*) gb_malloc(sizeof(tQueue));
     if(my_queue == NULL)
         return;
 
@@ -16,19 +17,19 @@ void myQueueInit(){
 }
 
 void myQueueFree(){
-    free(my_queue);
+    gb_free(my_queue);
 }
 
 void firstChar(char **buffer, char c)
 {
-    *buffer = (char*)malloc(2 * sizeof(char));
+    *buffer = (char*)gb_malloc(2 * sizeof(char));
     (*buffer)[0] = c;
     (*buffer)[1] = '\0';
 }
 
 void addChar(char **buffer, char c, unsigned length)
 {
-	*buffer = (char*)realloc(*buffer, (length+1) * sizeof(char));
+	*buffer = (char*)gb_realloc(*buffer, (length+1) * sizeof(char));
     (*buffer)[length - 1] = c;
     (*buffer)[length] = '\0';
 }
@@ -44,13 +45,11 @@ int getNextToken(char **buffer)
     FILE* f = stdin;
 
 	if(!queueEmpty(my_queue)){
-        //free(*buffer);
         tokenType temp = my_queue->temp_arr[my_queue->f_index];
         queueGet(my_queue, buffer);
 		return temp;
 	}
 
-	//free(*buffer);
     *buffer = NULL;
 
 	automataState state = STATE_BEGIN;
