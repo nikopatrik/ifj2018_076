@@ -43,6 +43,7 @@ typedef struct global_table_object{
     unsigned params_count;
     TYPES return_type;
     htab_t *loc_symtab;
+
     bool defined;
 }TGLOBTab;
 
