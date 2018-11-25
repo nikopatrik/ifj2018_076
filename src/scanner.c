@@ -1,6 +1,6 @@
-#include "header/list.h"
 #include "header/queue.h"
 #include "header/scanner.h"
+#include "header/garbagecollector.h"
 
 
 static tQueue* my_queue;
@@ -8,7 +8,7 @@ static tQueue* my_queue;
 unsigned length;
 
 void myQueueInit(){
-    my_queue = (tQueue*) malloc(sizeof(tQueue));
+    my_queue = (tQueue*) gb_malloc(sizeof(tQueue));
     if(my_queue == NULL)
         return;
 
@@ -16,19 +16,19 @@ void myQueueInit(){
 }
 
 void myQueueFree(){
-    free(my_queue);
+    gb_free(my_queue);
 }
 
 void firstChar(char **buffer, char c)
 {
-    *buffer = (char*)malloc(2 * sizeof(char));
+    *buffer = (char*)gb_malloc(2 * sizeof(char));
     (*buffer)[0] = c;
     (*buffer)[1] = '\0';
 }
 
 void addChar(char **buffer, char c, unsigned length)
 {
-	*buffer = (char*)realloc(*buffer, (length+1) * sizeof(char));
+	*buffer = (char*)gb_realloc(*buffer, (length+1) * sizeof(char));
     (*buffer)[length - 1] = c;
     (*buffer)[length] = '\0';
 }
@@ -44,13 +44,11 @@ int getNextToken(char **buffer)
     FILE* f = stdin;
 
 	if(!queueEmpty(my_queue)){
-        //free(*buffer);
         tokenType temp = my_queue->temp_arr[my_queue->f_index];
         queueGet(my_queue, buffer);
 		return temp;
 	}
 
-	//free(*buffer);
     *buffer = NULL;
 
 	automataState state = STATE_BEGIN;
@@ -123,13 +121,6 @@ int getNextToken(char **buffer)
             break;
 
             case STATE_QUOT :
-		/*		// Empty quotes
-                if((c=fgetc(f)) == '"')
-                    return TYPE_QUOT_EMPTY;
-                else{
-                    firstChar(buffer,c);
-                }
-*/
                 while((c=fgetc(f)) != '"'){
 					//	If there is no second quote, end at EOF with error
 					if(c == EOF)
@@ -137,17 +128,80 @@ int getNextToken(char **buffer)
 					//	'\"' does not end string
 					else if(c == '\\'){
 						c = fgetc(f);
-						// '"' have to be next char after '\'
-						if(c != '"'){
-							ungetc(c, f);
-                            if(length == 1){
-                                firstChar(buffer, '\\');
-                                length++;
-                            }else{
-                                addChar(buffer,'\\',++length);
-                                length++;
-                            }
-                        }
+						//  All posible escape sequentions
+						switch (c) {
+							//	quote
+							case '"' :
+								if(length == 1){
+									firstChar(buffer, '"');
+									length++;
+								}else
+									addChar(buffer, '"', length++);
+								continue;
+							//	new line	
+							case 'n' :
+								if(length == 1){
+									firstChar(buffer, '\n');
+									length++;
+								}else
+									addChar(buffer, '\n', length++);
+								continue;
+							//	tab
+							case 't' :
+								if(length == 1){
+									firstChar(buffer, '\t');
+									length++;
+								}else
+									addChar(buffer, '\t', length++);
+								continue;
+							// space
+							case 's' :
+								if(length == 1){
+									firstChar(buffer, ' ');
+									length++;
+								}else
+									addChar(buffer, ' ', length++);
+								continue;
+							// backslash
+							case '\\' :
+								if(length == 1){
+									firstChar(buffer, '\\');
+									length++;
+								}else
+									addChar(buffer, '\\', length++);
+								continue;
+							// hex
+							case 'x' :
+								//	Check if char == {0-9} || {A-F} 
+								if(((c = fgetc(f)) >= 48 && c <= 57) || (c >= 65 && c <= 70)){
+									char hex_escape[3];		// hexadecimal number
+									int char_escape;		// decimal value of char
+
+									hex_escape[0] = c;		//	add first hex number
+									//	Check if next number is also hex
+									if(((c = fgetc(f)) >= 48 && c <= 57) || (c >= 65 && c <= 70)){
+										hex_escape[1] = c;
+										hex_escape[2] = '\0';
+									}else{
+										ungetc(c, f);
+										hex_escape[1] = '\0';
+									}
+									//	Convert hex to decimal
+									char_escape = strtol(hex_escape, NULL, 16);
+									if(length == 1){
+										firstChar(buffer, char_escape);
+										length++;
+									}else
+										addChar(buffer, char_escape, length++);
+								}else{
+									ungetc(c, f);
+									return TYPE_ERROR;
+								}
+								continue;
+							//	If char after '\' is something else, skip '\' and save only next char
+							default :
+								c = fgetc(f);
+						}
                     }
                     if(length == 1){
                         firstChar(buffer, c);
@@ -195,7 +249,7 @@ int getNextToken(char **buffer)
 					return TYPE_NEG_EQUAL;
 				}else{
 					ungetc(c, f);
-					// return TYPE_NEG;
+					return TYPE_ERROR;
 				}
 
 
