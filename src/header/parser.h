@@ -11,7 +11,7 @@
 #ifndef _PARSER_H_
 #define _PARSER_H_
 
-bool parse(htab_t*);
+bool parse();
 
 bool st_list(tokenType*, char**);
 

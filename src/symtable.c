@@ -12,13 +12,198 @@
 
 #include "header/symtable.h"
 
+#define HTSIZE 500
+
+static htab_t *global_table;
+static htab_t *local_table;
+static TGLOBTab *glob_obj;
+static TLOCTab *loc_obj;
+static struct htab_listitem *item;
+
+void htab_setup(){
+    global_table = htab_init(HTSIZE);
+    struct htab_listitem *item;
+    /* Init main */
+    htab_t *local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "main", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 0, INT, local_table, true);
+
+    /* Init inputs */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "inputs", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 0, INT, local_table, true);
+    
+    /* Init inputi */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "inputi", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 0, INT, local_table, true);
+    
+    /* Init inputf*/
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "inputf", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 0, INT, local_table, true);
+    
+    /* Init print */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "print", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, -1, NIL, local_table, true);
+    
+    /* Init length */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "length", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 1, INT, local_table, true);
+    
+    /* Init length PARAM */
+    item = htab_lookup_add(glob_obj->loc_symtab, "s", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, STRING, true);
+    
+    /* Init substr */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "substr", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 3, STRING, local_table, true);
+    
+    /* Init substr PARAM */
+    item = htab_lookup_add(glob_obj->loc_symtab, "s", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, STRING, true);
+
+    item = htab_lookup_add(glob_obj->loc_symtab, "i", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, INT, true);
+
+    item = htab_lookup_add(glob_obj->loc_symtab, "n", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, INT, true);
+    
+    /* Init ord */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "ord", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 2, INT, local_table, true);
+
+    /* Init ord PARAM */
+    item = htab_lookup_add(glob_obj->loc_symtab, "s", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, STRING, true);
+    
+    item = htab_lookup_add(glob_obj->loc_symtab, "i", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, INT, true);
+    
+    /* Init chr */
+    local_table = htab_init(HTSIZE);
+    item = htab_lookup_add(global_table, "chr", glob_create);
+    glob_obj = (TGLOBTab*) item->object;
+    glob_init(glob_obj, 1, INT, local_table, true);
+    
+    /* Init chr PARAM */
+    item = htab_lookup_add(glob_obj->loc_symtab, "i", loc_create);
+    loc_obj = item->object;
+    loc_init(loc_obj, INT, true);
+    
+    item = htab_find(global_table, "main");
+    glob_obj =item->object;
+}
+
+htab_t* htab_return_pointer(){
+    return global_table;
+}
+
+void htab_def_func(char* key){
+    if((item = htab_find(global_table, key)) == NULL){      //ak nenajdes funkciu
+        local_table = htab_init(HTSIZE);                    
+        item = htab_lookup_add(global_table, key, glob_create);
+        glob_obj = (TGLOBTab*) item->object;
+        glob_init(glob_obj, 0, INT, local_table, true);     //pridaj hu tam
+    }
+    else{
+        glob_obj = (TGLOBTab*) item->object;        //zmen object s ktorym sa pracuje
+        if(glob_obj->defined != true){
+            glob_obj->defined = true;
+        }
+        else{
+            printf("ERROR: redefinition of function %s\n", key);
+            return;
+        }
+    }
+}
+
+void htab_call_func(char* key){
+    if((item = htab_find(global_table, key)) == NULL){      //ak nenajdes funkciu
+        local_table = htab_init(HTSIZE);                    
+        item = htab_lookup_add(global_table, key, glob_create);
+        glob_obj = (TGLOBTab*) item->object;
+        glob_init(glob_obj, 0, INT, local_table, false);     //pridaj hu tam
+    }
+    else{
+        glob_obj = (TGLOBTab*) item->object;        //zmen funckiu s ktorou sa pracuje
+    }
+}
+
+void htab_add_id(char *key, TYPES type){
+    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
+        item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
+        loc_obj = (TLOCTab*) item->object;
+        loc_init(loc_obj, type, true);     //pridaj ho tam
+    }
+    else{
+        loc_obj = (TLOCTab*) item->object;
+    }
+}
+
+void htab_set_type(TYPES type){
+    loc_obj->type = type;
+}
+
+
+void htab_find_id(char *key){
+    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){  // Ak nenaslo ID
+        htab_t* my_local_table = htab_init(HTSIZE);                    
+        if((item = htab_lookup_add(global_table, key, glob_create)) == NULL){ // A nenaslo funkc
+            TGLOBTab* my_glob_obj = (TGLOBTab*) item->object;
+            glob_init(my_glob_obj, 0, INT, my_local_table, false);  // Pridaj funkc s 0 params
+        }
+        else{
+            TGLOBTab* my_glob_obj = (TGLOBTab*) item->object;
+            if(my_glob_obj->params_count != 0){         // Skontroluj spravne volanie
+                printf("ERROR: Wrong number of params in function %s\n", key);
+                return;
+            }       
+        }
+    }
+    else{
+        TLOCTab* my_loc_obj = item->object;
+        htab_set_type(my_loc_obj->type);
+    }
+}
+
+void htab_def_param(char *key, TYPES type){
+    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
+        item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
+        loc_obj = (TLOCTab*) item->object;
+        loc_init(loc_obj, type, true);     //pridaj ho tam
+    }
+    else{
+        printf("ERROR: redefinition of parameter %s\n", key);
+        return;
+    }
+}
+
+
 unsigned htab_hash_function(const char *key)
 {
     unsigned h = 0;
     const unsigned char *p;
     for(p = (const unsigned char*)key; *p != '\0'; p++)
         h = 65599*h + *p;
-    return h;
 }
 
 htab_t* htab_init(unsigned arr_size)
@@ -42,7 +227,7 @@ htab_t* htab_move(unsigned newsize, htab_t* t2,void* (*copy_deep)(void*))
     
     htab_t *t = htab_init(newsize);
 
-    if(t2 == NULL || t == NULL)
+    if(t-3 == NULL || t == NULL)
         return NULL;
 
     struct htab_listitem* item = NULL;
@@ -204,9 +389,7 @@ void htab_clear(htab_t* t){
         item = t->arr[i];
         // Prejde zoznam az po koniec a uvolni ho
         while(item != NULL){
-            temp = item->next;
-            free(item->key);
-            free(item->object);
+            temp = item->next; free(item->key); free(item->object);
             free(item);
             t->size--;
             item = temp;

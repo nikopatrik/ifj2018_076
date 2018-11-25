@@ -27,7 +27,6 @@ bool stat(tokenType* token, char** buffer)
 {
     //////////////////////////////////////////////////// 03
     if(*token == TYPE_ID){                   //ID
-        *token = getNextToken(buffer);
         if(id_item(token, buffer))        //<ID-ITEM>
             return true;
         else
@@ -35,6 +34,7 @@ bool stat(tokenType* token, char** buffer)
     }
     //////////////////////////////////////////////////// 04
     if(*token == TYPE_FUNC_ID || *token == TYPE_PRE_FUNC){              //FUNC_ID
+        htab_call_func(*buffer);        // Vloz do htab FUNC_ID undefined
         *token = getNextToken(buffer);
         if(func(token, buffer))          //<FUNC>
             return true;
@@ -79,6 +79,7 @@ bool stat(tokenType* token, char** buffer)
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "def")){      //DEF
         *token = getNextToken(buffer);
         if(*token == TYPE_ID){       //ID
+            htab_def_func(*buffer);
             *token = getNextToken(buffer);
             if(func(token, buffer) && end_st_list(token, buffer))   // <FUNC> && <END_ST_LIST>
                 if(*token == TYPE_EOL)   //EOL
@@ -127,8 +128,13 @@ bool end_st_list(tokenType* token, char** buffer)
 
 bool id_item(tokenType* token, char** buffer)
 {
+    
+    tokenType temp = *token;
+    char* temp_buff = *buffer;
+    *token = getNextToken(buffer);
     //////////////////////////////////////// 12
     if(*token == TYPE_ASSIGN){                   // =
+        htab_add_id(temp_buff, 27);
         *token = getNextToken(buffer);
         if(assign(token, buffer))            //<ASSIGN>
             return true;
@@ -137,6 +143,7 @@ bool id_item(tokenType* token, char** buffer)
     }
     //////////////////////////////////////// 13
     else if(*token == TYPE_EOL){                 //EOL
+        htab_add_id(temp_buff, 27);
         *token = getNextToken(buffer);
         return true;
     }
@@ -147,7 +154,6 @@ bool id_item(tokenType* token, char** buffer)
         else
             return false;
     }
-    
 }
 
 bool assign(tokenType* token, char** buffer)
@@ -161,6 +167,7 @@ bool assign(tokenType* token, char** buffer)
     }
     //////////////////////////////////////// 16
     else if(*token == TYPE_FUNC_ID || *token == TYPE_PRE_FUNC){             //FUNC_ID
+        htab_call_func(*buffer);
         *token = getNextToken(buffer);
         if(func(token, buffer))              //<FUNC>
             return true;
@@ -181,8 +188,10 @@ bool assign(tokenType* token, char** buffer)
         tokenType temp = *token;
         char* temp_buff = *buffer;
         *token = getNextToken(buffer);
-        if(*token == TYPE_EOL)
+        if(*token == TYPE_EOL){
+            htab_set_type(temp);        // nastavi TYPE vlozeneho ID s 03 -> 12
             return true;
+        }
         else{
             ungetToken(temp, temp_buff);
             ungetToken(*token, *buffer);
@@ -213,6 +222,7 @@ bool next(tokenType* token, char** buffer)
     *token = getNextToken(buffer);
     //////////////////////////////////////// 18
     if(*token == TYPE_EOL){                      //EOL
+        htab_find_id(temp_buff);
         *token = getNextToken(buffer);
         return true;
     }
@@ -229,6 +239,8 @@ bool next(tokenType* token, char** buffer)
     }
     //////////////////////////////////////// 20
     else if(*token == TYPE_ID){  //ID|VALUE
+        htab_call_func(temp_buff);
+        htab_def_param(*buffer);
         *token = getNextToken(buffer);
         if(next_param(token, buffer))             //<PARAM>
             return true;

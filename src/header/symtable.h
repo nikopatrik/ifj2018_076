@@ -37,7 +37,7 @@ typedef struct hashtable{
     struct htab_listitem* arr[];    /**< Pole ukazatelov na item */
 } htab_t;
 
-typedef enum ifj18_types{ INT, FLOAT, STRING} TYPES;
+typedef enum ifj18_types{ STRING = 14, EMPTYS_S, INT, INT_EXP, FLOAT, FLOAT_EXP,  NIL = 27 } TYPES;
 
 typedef struct global_table_object{
     unsigned params_count;
@@ -52,6 +52,22 @@ typedef struct local_table_object{
 }TLOCTab;
     
 
+
+void htab_setup();
+
+htab_t* htab_return_pointer();
+
+void htab_def_func(char* key);
+
+void htab_call_func(char* key);
+
+void htab_set_type(TYPES type);
+
+void htab_add_id(char* key, TYPES type);
+
+void htab_find_id(char *key);
+
+void htab_def_param(char* key);
 
 /**
  * @brief Hashovacia funkcia
