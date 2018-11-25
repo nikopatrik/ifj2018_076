@@ -11,6 +11,7 @@
  */
 
 #include "header/symtable.h"
+#include "header/garbagecollector.h"
 
 #define HTSIZE 500
 
@@ -122,7 +123,7 @@ void htab_def_func(char* key){
         local_table = htab_init(HTSIZE);                    
         item = htab_lookup_add(global_table, key, glob_create);
         glob_obj = (TGLOBTab*) item->object;
-        glob_init(glob_obj, 0, INT, local_table, true);     //pridaj hu tam
+        glob_init(glob_obj, -1, INT, local_table, true);     //pridaj hu tam
     }
     else{
         glob_obj = (TGLOBTab*) item->object;        //zmen object s ktorym sa pracuje
@@ -130,8 +131,7 @@ void htab_def_func(char* key){
             glob_obj->defined = true;
         }
         else{
-            printf("ERROR: redefinition of function %s\n", key);
-            return;
+            gb_exit_process(3);             //RETURN ERROR CODE 3
         }
     }
 }
@@ -141,7 +141,7 @@ void htab_call_func(char* key){
         local_table = htab_init(HTSIZE);                    
         item = htab_lookup_add(global_table, key, glob_create);
         glob_obj = (TGLOBTab*) item->object;
-        glob_init(glob_obj, 0, INT, local_table, false);     //pridaj hu tam
+        glob_init(glob_obj, -1, INT, local_table, false);     //pridaj hu tam
     }
     else{
         glob_obj = (TGLOBTab*) item->object;        //zmen funckiu s ktorou sa pracuje
@@ -162,7 +162,6 @@ void htab_add_id(char *key, TYPES type){
 void htab_set_type(TYPES type){
     loc_obj->type = type;
 }
-
 
 void htab_find_id(char *key){
     if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){  // Ak nenaslo ID
@@ -185,11 +184,11 @@ void htab_find_id(char *key){
     }
 }
 
-void htab_def_param(char *key, TYPES type){
+void htab_def_param(char *key){
     if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
         item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
         loc_obj = (TLOCTab*) item->object;
-        loc_init(loc_obj, type, true);     //pridaj ho tam
+        loc_init(loc_obj, INT, true);     //pridaj ho tam
     }
     else{
         printf("ERROR: redefinition of parameter %s\n", key);
