@@ -1,4 +1,5 @@
-
+#ifndef _INSTRLIST_H_
+#define _INSTRLIST_H_
 /* Předmět: Algoritmy (IAL) - FIT VUT v Brně
  * Hlavičkový soubor pro c206.c (Dvousměrně vázaný lineární seznam)
  * Vytvořil: Martin Tuček, září 2005
@@ -54,3 +55,4 @@ int DLActive (tDLList *);
 void DLPrintList (tDLList *);
 
 /* Konec hlavičkového souboru c206.h */
+#endif
