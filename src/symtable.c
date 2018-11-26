@@ -411,6 +411,7 @@ void htab_free(htab_t* t){
 void* glob_create()
 {
     TGLOBTab *tmp = malloc(sizeof(struct global_table_object));
+    tmp->return_type = NONE;
     tmp->defined = true;
     return tmp;
 }
@@ -427,6 +428,7 @@ void glob_init(TGLOBTab *t, unsigned params_count, TYPES return_type,
 void* loc_create()
 {
     TLOCTab *tmp = malloc(sizeof(struct global_table_object));
+    tmp->type = NONE;
     tmp->initialized = false;
     return tmp;
 }

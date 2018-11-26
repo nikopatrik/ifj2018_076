@@ -37,7 +37,7 @@ typedef struct hashtable{
     struct htab_listitem* arr[];    /**< Pole ukazatelov na item */
 } htab_t;
 
-typedef enum ifj18_types{ STRING = 14, EMPTYS_S, INT, INT_EXP, FLOAT, FLOAT_EXP,  NIL = 27 } TYPES;
+typedef enum ifj18_types{ NONE = -1, STRING = 14, EMPTYS_S, INT, INT_EXP, FLOAT, FLOAT_EXP,  NIL = 27 } TYPES;
 
 typedef struct global_table_object{
     unsigned params_count;
