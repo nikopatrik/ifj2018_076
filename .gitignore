@@ -1,2 +1,4 @@
 ifj18
 *.o
+ic18int
+*.code
