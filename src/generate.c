@@ -5,11 +5,15 @@
 #include "header/symtable.h"
 #include "header/garbagecollector.h"
 
+
+static int id_Param = 0;
+static int chr=0,substr=0,ord=0,length=0;
+
 void addString(char **buffer, char *add)
 {
     if(add){
         if(*buffer){
-            unsigned old = strlen(*buffer);v
+            unsigned old = strlen(*buffer);
             unsigned new = old + strlen(add);
             *buffer = realloc(*buffer, new +1);
             strcat(*buffer,add);
@@ -64,10 +68,9 @@ void convertToString(char **buffer)
             j++;
         }
     }
-    unsigned length= strlen(formatedstring)+1;n
+    unsigned length= strlen(formatedstring)+1;
     *buffer = realloc(*buffer,length);
     strcpy(*buffer,formatedstring);
-    *buffer[length]= '\0';
     free(formatedstring);
 
 }
@@ -83,7 +86,6 @@ void getVarInt(char **buffer,char *val)
 void getVarFloat(char **buffer,char *val)
 {
     double value = atof(val);
-    printf("%lf\n",value );
     unsigned size = snprintf(NULL, 0, "float@%a", value);
     *buffer = (char *)malloc(size + 1);
     snprintf(*buffer, size+1, "float@%a", value);
@@ -130,20 +132,50 @@ void printHead()
     fprintf(stdout, ".IFJcode18\nJUMP $MAIN\n");
 }
 
-static int id_Param = 0;
-//nefunguje
 void printParam(tDLList *L,TYPES type,char *value)
 {
     char *buffer = NULL;
+    char *var = NULL;
     switch (type) {
-        case NIL:
-            unsigned size = snprintf(NULL, 0, "DEFVAR @%a", id_Param);
-            *buffer = (char *)malloc(size + 1);
-
-
+        case NONE:
+            fillString(&buffer,"DEFVAR TF@%s\n",value);
+            break;
+        case INT:
+            fillString(&buffer,"DEFVAR TF@param%d\nMOVE TF@param%d ",id_Param,id_Param);
+            getVarInt(&var,value);
+            addString(&buffer,var);
+            addString(&buffer,"\n");
+            id_Param ++;
+            break;
+        case FLOAT:
+            fillString(&buffer,"DEFVAR TF@param%d\nMOVE TF@param%d ",id_Param,id_Param);
+            getVarFloat(&var,value);
+            addString(&buffer,var);
+            addString(&buffer,"\n");
+            id_Param ++;
+            break;
+        case STRING:
+            fillString(&buffer,"DEFVAR TF@param%d\nMOVE TF@param%d ",id_Param,id_Param);
+            getVarString(&var,value);
+            addString(&buffer,var);
+            addString(&buffer,"\n");
+            id_Param ++;
+            break;
     }
+
+    DLInsertLast(L,buffer);
+    gb_free(buffer);
+    gb_free(var);
 }
 
+void endFunc(tDLList *L,char *name)
+{
+    char *buffer = NULL;
+    fillString(&buffer,"CALL %s",name);
+    DLInsertLast(L,buffer);
+    gb_free(buffer);
+    id_Param = 0;
+}
 
 void printFuncLength(tDLList *L)
 {
@@ -258,10 +290,6 @@ void printFuncOrd(tDLList *L)
     free(buffer);
 }
 
-void printParam(tDLList *L,TYPES type,)
-{
-
-}
 
 void printFuncBegin(char *fID)
 {
