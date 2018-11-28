@@ -6,6 +6,7 @@
 #define _GENERATE_H_
 
 void addString(char **buffer, char *add);
+void fillString(char **code,char *formatted_string,...);
 void convertCharToString(char *array, char dumbchar);
 void convertToString(char **buffer);
 void printFuncLength();
