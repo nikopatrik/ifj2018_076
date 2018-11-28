@@ -29,7 +29,7 @@ tests: $(b_tests)
 test_gcollector: test_gcollector.o garbagecollector.o
 	$(CC) $^ -o tests/$@
 
-test_parseexp: test_parseexp.o scanner.o parseexp.o garbagecollector.o queue.o
+test_parseexp: test_parseexp.o scanner.o parseexp.o garbagecollector.o queue.o generate.o instrlist.o symtable.o
 	$(CC) $^ -o tests/$@
 
 test_scanner: test_scanner.o scanner.o queue.o garbagecollector.o
@@ -63,6 +63,12 @@ build/symtable.o: symtable.c symtable.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/queue.o: queue.c queue.h scanner.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/generate.o: generate.c generate.h instrlist.h symtable.h garbagecollector.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/instrlist.o: instrlist.c instrlist.h 
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
