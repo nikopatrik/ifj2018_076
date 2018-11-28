@@ -106,7 +106,7 @@ void DLDisposeList (tDLList *L) {
 
 void DLPostInsertList (tDLList *L, tDLList *M)
 {
-    if(!L || !M || !L->Act || !M->Act){
+    if(!L || !M || !L->Act ){
         DLError();
         return;
     }
@@ -126,7 +126,7 @@ void DLPostInsertList (tDLList *L, tDLList *M)
 
 void DLPreInsertList (tDLList *L, tDLList *M)
 {
-    if(!L || !M || !L->Act || !M->Act){
+    if(!L || !M || !L->Act ){
         DLError();
         return;
     }
