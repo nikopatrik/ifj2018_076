@@ -1,21 +1,25 @@
-/**
- * This file contains main function for compiler.
- * Project name:    IFJ_Compiler_2018
- * Author and Contributors:
- *      Matej Jancek    xjance00
- *      Nikolas Patrik  xpatri00
- *      Peto Hornak     xhorna14
- *      Robert Hubinak  xhubin03
- * Compiled: gcc 8.0.1
- */
-         
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
+#include "header/parser.h"
+#include "header/symtable.h"
+#include "header/scanner.h"
 
+int main(){
+    
+    unsigned i = 10;
+    htab_setup();
+    myQueueInit();
+    bool corr = true;
+    corr =  parse();
 
-int main(int argc, char *argv[])
-{
-    /* main body of function */
+    if(corr == true)
+        printf("correct!\n");
+    else
+        printf("wrong!\n");
+
+    myQueueFree();
 }

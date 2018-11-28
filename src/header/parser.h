@@ -7,6 +7,9 @@
 #include "scanner.h"
 #include "symtable.h"
 #include "parseexp.h"
+#include "garbagecollector.h"
+#include "instrlist.h"
+#include "generate.h"
 
 #ifndef _PARSER_H_
 #define _PARSER_H_

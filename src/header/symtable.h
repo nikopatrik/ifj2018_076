@@ -60,9 +60,13 @@ htab_t* htab_return_pointer();
 
 void htab_def_func(char* key);
 
-void htab_call_func(char* key);
+TGLOBTab* htab_call_func(char* key);
 
 void htab_set_type(TYPES type);
+
+void htab_set_param_count(TGLOBTab* my_glob_obj,int count);
+
+void htab_set_main();
 
 void htab_add_id(char* key, TYPES type);
 

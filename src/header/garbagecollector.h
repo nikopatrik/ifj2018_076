@@ -8,6 +8,9 @@
  * Please, do not modify this file!
  */
 
+#ifndef _GARBAGE_H_
+#define _GARBAGE_H_
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<stdarg.h>
@@ -56,3 +59,5 @@ int  Active ();
 void DeleteActive();
 
 /* Konec hlavičkového souboru c201.h */
+
+#endif
