@@ -118,11 +118,11 @@ htab_t* htab_return_pointer(){
     return global_table;
 }
 
-void htab_def_func(char* key){
+TGLOBTab* htab_def_func(char* key){
     if((item = htab_find(global_table, key)) == NULL){      //ak nenajdes funkciu
         item = htab_find(global_table, "main");
         TGLOBTab* my_glob_obj = item->object;
-        if((item = htab_find(my_glob_obj->loc_symtab, key)) == NULL){
+        if((item = htab_find(my_glob_obj->loc_symtab, key)) == NULL){ // nenajdes ID v maine
             local_table = htab_init(HTSIZE);                    
             item = htab_lookup_add(global_table, key, glob_create);
             glob_obj = (TGLOBTab*) item->object;
@@ -143,15 +143,16 @@ void htab_def_func(char* key){
             gb_exit_process(3);             //RETURN ERROR CODE 3
         }
     }
+    return glob_obj;
 }
 
 TGLOBTab* htab_call_func(char* key){
     if((item = htab_find(global_table, key)) == NULL){      //ak nenajdes funkciu
         item = htab_find(global_table, "main");
         TGLOBTab* my_glob_obj = item->object;
-        if((item = htab_find(my_glob_obj->loc_symtab, key)) == NULL){
+        if((item = htab_find(my_glob_obj->loc_symtab, key)) == NULL){   //nenajdes premennu
             htab_t *my_local_table = htab_init(HTSIZE);                    
-            item = htab_lookup_add(global_table, key, glob_create);
+            item = htab_lookup_add(global_table, key, glob_create); 
             my_glob_obj = (TGLOBTab*) item->object;
             glob_init(my_glob_obj, -1, INT, my_local_table, false);     //pridaj hu tam
         }
@@ -159,25 +160,21 @@ TGLOBTab* htab_call_func(char* key){
             printf("ERROR: REDEFINITION of ID %s by func\n", key);
             gb_exit_process(3);
         }
-    return item->object;
+        return item->object;
     }
+    return item->object;
 }
 
 
-void htab_add_id(char *key, TYPES type){
+void htab_add_id(char *key){
     if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
-         
         item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
         loc_obj = (TLOCTab*) item->object;
-        loc_init(loc_obj, type, true);     //pridaj ho tam
+        loc_init(loc_obj, NONE, true);     //pridaj ho tam
     }
     else{
         loc_obj = (TLOCTab*) item->object;
     }
-}
-
-void htab_set_type(TYPES type){
-    loc_obj->type = type;
 }
 
 void htab_set_param_count(TGLOBTab* my_glob_obj,int count){
@@ -187,7 +184,7 @@ void htab_set_param_count(TGLOBTab* my_glob_obj,int count){
     else if(my_glob_obj->params_count == -2)
         return;
     else if(my_glob_obj->params_count != count){
-        printf("ERROR: Zly pocet parametrov\n");
+        printf("ERROR: WRONG number of params, EXPECTED:%d\n", my_glob_obj->params_count);
         gb_exit_process(3);
     }
 }
@@ -208,17 +205,14 @@ void htab_find_id(char *key){
             TGLOBTab* my_glob_obj = (TGLOBTab*) item->object;
             if(my_glob_obj->params_count != -1){         // Skontroluj spravne volanie
                 if(my_glob_obj->params_count != 0){
-                    printf("ERROR: Wrong number of params in function %s\n", key);
-                    return;
+                    printf("ERROR: Wrong number of params in function: %s "
+                            "EXPECTED: %d\n", key, my_glob_obj->params_count);
+                    gb_exit_process(3);
                 }
             else
                 my_glob_obj->params_count = 0;
             }       
         }
-    }
-    else{
-        TLOCTab* my_loc_obj = item->object;
-        htab_set_type(my_loc_obj->type);
     }
 }
 
@@ -234,6 +228,25 @@ void htab_def_param(char *key){
     }
 }
 
+void htab_check_param(char *key){
+    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
+        printf("ERROR: undefined parameter %s\n", key);
+        gb_exit_process(3);
+    }
+}
+
+void global_def(const char* key, void* object)
+{
+    TGLOBTab *tmp = object;
+    if(tmp->defined == false){
+        printf("ERROR: undefined function\n");
+        gb_exit_process(3);
+    }
+}
+
+void check_defined(){
+    htab_foreach(global_table, global_def);
+}
 
 unsigned htab_hash_function(const char *key)
 {
@@ -455,7 +468,7 @@ void* glob_create()
     return tmp;
 }
 
-void glob_init(TGLOBTab *t, unsigned params_count, TYPES return_type,
+void glob_init(TGLOBTab *t, int params_count, TYPES return_type,
         htab_t *loc_symtab, bool defined)
 {
     t->params_count = params_count;

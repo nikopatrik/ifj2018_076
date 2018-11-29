@@ -43,7 +43,6 @@ typedef struct global_table_object{
     unsigned params_count;
     TYPES return_type;
     htab_t *loc_symtab;
-
     bool defined;
 }TGLOBTab;
 
@@ -58,21 +57,25 @@ void htab_setup();
 
 htab_t* htab_return_pointer();
 
-void htab_def_func(char* key);
+TGLOBTab* htab_def_func(char* key); 
 
-TGLOBTab* htab_call_func(char* key);
+TGLOBTab* htab_call_func(char* key); 
 
-void htab_set_type(TYPES type);
+void htab_set_param_count(TGLOBTab* my_glob_obj,int count); 
 
-void htab_set_param_count(TGLOBTab* my_glob_obj,int count);
+void htab_set_main(); 
 
-void htab_set_main();
+void htab_add_id(char* key); 
 
-void htab_add_id(char* key, TYPES type);
+void htab_find_id(char *key); 
 
-void htab_find_id(char *key);
+void htab_def_param(char *key); 
 
-void htab_def_param(char* key);
+void htab_check_param(char *key);
+
+void global_def(const char* key, void* object);
+
+void check_defined();
 
 /**
  * @brief Hashovacia funkcia
@@ -144,7 +147,7 @@ void* glob_create();
 /**
  * @brief Inicializuje strukturu
  */
-void glob_init(TGLOBTab *t, unsigned params_count, TYPES return_type,
+void glob_init(TGLOBTab *t, int params_count, TYPES return_type,
         htab_t *loc_symtab, bool defined);
 
 /**

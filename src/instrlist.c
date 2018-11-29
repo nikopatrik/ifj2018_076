@@ -88,16 +88,16 @@ void DLDisposeList (tDLList *L) {
 /*
 ** Zruší všechny prvky seznamu L a uvede seznam do stavu, v jakém
 ** se nacházel po inicializaci. Rušené prvky seznamu budou korektně
-** uvolněny voláním operace free.
+** uvolněny voláním operace gb_free.
 **/
 
   //Posuva First a cez Act uvolnuje paměť
   while(L->First!= NULL){
       L->Act = L->First;
       L->First = L->First->rptr;
-      free(L->Act->instruction);
+      gb_free(L->Act->instruction);
       L->Act->instruction = NULL;
-      free(L->Act);
+      gb_free(L->Act);
     }
 
     L->Act = NULL;
@@ -148,19 +148,19 @@ void DLPreInsertList (tDLList *L, tDLList *M)
 void DLInsertFirst (tDLList *L, char *instruction) {
 /*
 ** Vloží nový prvek na začátek seznamu L.
-** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
+** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
 ** volá funkci DLError().
 **/
 
   //Naalokujem prvok a nastavim hodnoty
-  tDLElemPtr New = malloc(sizeof(struct tDLElem));
+  tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
 
   if(New == NULL){
       DLError();
       return;
   }
 
-  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
+  New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -181,18 +181,18 @@ void DLInsertFirst (tDLList *L, char *instruction) {
 void DLInsertLast(tDLList *L, char *instruction) {
 /*
 ** Vloží nový prvek na konec seznamu L (symetrická operace k DLInsertFirst).
-** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
+** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
 ** volá funkci DLError().
 **/
 
   //Naalokujem novy prcok a nastavim hodnoty
-  tDLElemPtr New = malloc(sizeof(struct tDLElem));
+  tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
       DLError();
       return;
   }
 
-  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
+  New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -238,7 +238,7 @@ void DLCopyFirst (tDLList *L, char **val) {
       return;
   }
   else{
-      *val = malloc(sizeof(char)*(strlen(L->First->instruction)+1));
+      *val = gb_malloc(sizeof(char)*(strlen(L->First->instruction)+1));
       strcpy(*val,L->First->instruction);
   }
 
@@ -254,7 +254,7 @@ void DLCopyLast (tDLList *L, char **val) {
       return;
   }
   else{
-      *val = malloc(sizeof(char)*(strlen(L->Last->instruction)+1));
+      *val = gb_malloc(sizeof(char)*(strlen(L->Last->instruction)+1));
       strcpy(*val,L->Last->instruction);
   }
 }
@@ -287,8 +287,8 @@ void DLDeleteFirst (tDLList *L) {
   }
 
   //Uvolni prvy prvok
-  free(Pom->instruction);
-  free(Pom);
+  gb_free(Pom->instruction);
+  gb_free(Pom);
 }
 
 void DLDeleteLast (tDLList *L) {
@@ -318,8 +318,8 @@ void DLDeleteLast (tDLList *L) {
       L->Last->rptr = NULL;
   }
     //Uvolni posledny prvok
-    free(Pom->instruction);
-    free(Pom);
+    gb_free(Pom->instruction);
+    gb_free(Pom);
 }
 
 void DLPostDelete (tDLList *L) {
@@ -346,8 +346,8 @@ void DLPostDelete (tDLList *L) {
   }
 
   //Uvolni mazany prvok
-  free(Pom->instruction);
-  free(Pom);
+  gb_free(Pom->instruction);
+  gb_free(Pom);
 }
 
 void DLPreDelete (tDLList *L) {
@@ -373,28 +373,28 @@ void DLPreDelete (tDLList *L) {
       Pom->lptr->rptr = L->Act;
   }
   //Uvolni prvok
-  free(Pom->instruction);
-  free(Pom);
+  gb_free(Pom->instruction);
+  gb_free(Pom);
 }
 
 void DLPostInsert (tDLList *L,  char *instruction) {
 /*
 ** Vloží prvek za aktivní prvek seznamu L.
 ** Pokud nebyl seznam L aktivní, nic se neděje.
-** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
+** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
 ** volá funkci DLError().
 **/
   if(L->Act == NULL)
       return;
 
   //Vytvorenie noveho prvku
-  tDLElemPtr New = malloc(sizeof(struct tDLElem));
+  tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
       DLError();
       return;
   }
   //Inicializujem data noveho prvku
-  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
+  New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -419,19 +419,19 @@ void DLPreInsert (tDLList *L, char *instruction) {
 /*
 ** Vloží prvek před aktivní prvek seznamu L.
 ** Pokud nebyl seznam L aktivní, nic se neděje.
-** V případě, že není dostatek paměti pro nový prvek při operaci malloc,
+** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
 ** volá funkci DLError().
 **/
   if(L->Act == NULL)
       return;
   //Vytvorenie noveho prvku
-  tDLElemPtr New = malloc(sizeof(struct tDLElem));
+  tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
       DLError();
       return;
   }
   //Inicializujem data noveho prvku
-  New->instruction = malloc(sizeof(char)*(strlen(instruction)+1));
+  New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
       DLError();
       return;
@@ -458,7 +458,7 @@ void DLCopy (tDLList *L, char **val) {
 ** Pokud seznam L není aktivní, volá funkci DLError ().
 **/
   if(L->Act != NULL){
-      *val = malloc(sizeof(char)*(strlen(L->Act->instruction)+1));
+      *val = gb_malloc(sizeof(char)*(strlen(L->Act->instruction)+1));
       strcpy(*val,L->Act->instruction);
   }
   else{

@@ -23,16 +23,20 @@ void getVarString(char **buffer,char *value);
 void printHead();
 void printParam(tDLList *L, TYPES type, char *value);
 void callFunc(tDLList *L, char *name);
+void printDefParam(tDLList *L, char *name);
+void lastParam();
 void printFuncLength(tDLList *L);
 void printFuncSubstr(tDLList *L);
 void printFuncChr(tDLList *L);
 void printFuncOrd(tDLList *L);
-void printFuncBegin(char *fID);
-void printFuncEnd();
+void printFuncBegin(tDLList *L, char *fID);
+void printFuncEnd(tDLList *L);
 void printMainBegin();
 void printMainEnd();
 void printIf(tDLList *L);
 void printElse(tDLList *L);
 void printEndif(tDLList *L);
+void printWhile(tDLList *L);
+void printEndwhile(tDLList *L);
 
 #endif
