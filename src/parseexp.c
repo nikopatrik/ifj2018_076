@@ -4,6 +4,9 @@
 #include "header/scanner.h"
 #include "header/parseexp.h"
 #include "header/garbagecollector.h"
+#include "header/symtable.h"
+#include "header/generate.h"
+#include "header/instrlist.h"
 
 // TODO
 // Implementovat pracu s tabulkov symbolov
@@ -46,7 +49,7 @@ void es_push(TEvalStack *t, bool is_terminal, bool is_nonterminal,
     tmp->is_terminal = is_terminal;
     tmp->is_nonterminal = is_nonterminal;
     tmp->token = token;
-    tmp->token_attribute = attribute; //TODO skontrolovat
+    tmp->token_attribute = attribute; 
     tmp->info = info;
 
     tmp->prev = t->stack_top;
@@ -144,17 +147,20 @@ int get_table_index(tokenType type)
 #define END_EXP_MAPPING 13 //because 13 is index to precedence table
 
 
-void rule_operators(TEvalStack *t);
+void rule_operators(TEvalStack *t,tDLList *l,htab_t *h);
 void rule_brackets(TEvalStack *t);
-void rule_term_to_noterm(TEvalStack *t);
+void rule_term_to_noterm(TEvalStack *t,tDLList *l, htab_t *h);
 
-bool expression_parse(tokenType end, char* end_token_attribute)
+bool expression_parse(tokenType end, char* end_token_attribute, htab_t *symtab, 
+        tDLList *l_main)
 {
     TEvalStack t;
     es_init(&t);
     tokenType token;
     char *buffer = NULL;
-
+    tDLList *l = gb_malloc(sizeof(tDLList));
+    DLInitList(l);
+    
     //Initialization Part
     es_push(&t, true, false, end, end_token_attribute,'$');
     TStackItemPtr a = es_top_terminal(&t);
@@ -194,7 +200,7 @@ bool expression_parse(tokenType end, char* end_token_attribute)
                 top2= top1->prev;
                 if(top2->info == '<')
                     if(top1->is_terminal)
-                        rule_term_to_noterm(&t);
+                        rule_term_to_noterm(&t,l,symtab);
                     else
                         return false;
                 else{
@@ -203,7 +209,7 @@ bool expression_parse(tokenType end, char* end_token_attribute)
                         if(!(top1->is_nonterminal || top3->is_nonterminal))
                             return false;
 
-                        rule_operators(&t);
+                        rule_operators(&t,l,symtab);
                     }
                     else if(top2->is_nonterminal){
                         if(!(top1->token == TYPE_R_BRE || 
@@ -219,27 +225,573 @@ bool expression_parse(tokenType end, char* end_token_attribute)
                 return false;
         }
     }while(!es_endcondition(&t,end,end_token_attribute,token,buffer));
+    DLPreInsertList(l_main,l);
     return true;
 }
 
-const static unsigned TYPE_BOOL = TYPE_NIL+1;
-void rule_operators(TEvalStack *t)
-{
-    //TODO opravit aby bolo schopne generovat kod.
-    es_top_pop(t);
-    es_top_pop(t);
-    es_top_pop(t);
-    es_top_pop(t);
 
-    es_push(t,false,true,-1,NULL,'E');
+void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
+{
+    char *code = NULL;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n" 
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,
+            var_number+2,var_number,var_number,var_number,
+            var_number+1,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string",
+            label_number,var_number,label_number,var_number+1,
+            label_number,var_number,label_number,var_number+1,
+            label_number,var_number,var_number+1,
+            label_number,var_number,label_number,var_number,
+            label_number,var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$additions$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$additions$%d\n"
+            "LABEL $$equal$types$%d\n"
+            "JUMPIFEQ $$string$concat$%d LF@prec$notype$%d$type string@string",
+            label_number,label_number,var_number+1,var_number,var_number,
+            label_number,label_number,label_number,var_number+1,
+            var_number+1,var_number+1,label_number,label_number,
+            label_number,var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$additions$%d\n"
+            "ADD LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$string$concat$%d\n"
+            "CONCAT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,var_number+2,var_number+1,var_number,
+            label_number,label_number,var_number+2,var_number+1,
+            var_number,label_number,label_number,label_number,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
 }
 
-void rule_term_to_noterm(TEvalStack *t)
+void generate_subtract(tDLList *l, unsigned var_number, unsigned label_number)
 {
+    char *code;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,var_number,
+            var_number,var_number,var_number+1,var_number+1,var_number+1,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,var_number+1,
+            label_number,var_number,label_number,var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n" 
+            "LABEL $$equal$types$%d\n"
+            "SUB LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,label_number,var_number+1,var_number,var_number,label_number,
+            label_number,label_number,var_number+1,var_number+1,var_number+1,label_number,
+            label_number,var_number+2,var_number+1,var_number,label_number,
+            label_number,label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+}
+
+
+void generate_multiply(tDLList *l, unsigned var_number, unsigned label_number)
+{
+    char *code;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,var_number,
+            var_number,var_number,var_number+1,var_number+1,var_number+1,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,var_number+1,
+            label_number,var_number,label_number,var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n" 
+            "LABEL $$equal$types$%d\n"
+            "MUL LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,label_number,var_number+1,var_number,var_number,label_number,
+            label_number,label_number,var_number+1,var_number+1,var_number+1,label_number,
+            label_number,var_number+2,var_number+1,var_number,label_number,
+            label_number,label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+}
+
+void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
+{
+    char *code;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,var_number,
+            var_number,var_number,var_number+1,var_number+1,var_number+1,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,label_number, var_number+1,
+            label_number,var_number,var_number+1,
+            label_number,var_number,label_number,var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n",
+            label_number,label_number,var_number+1,var_number,var_number,
+            label_number,label_number,label_number,var_number+1,
+            var_number+1,var_number+1,label_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$equal$types$%d\n"
+            "JUMPIFEQ $$equal$types$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$error$zero$divide$%d LF@prec$notype$%d float@0x0p+0\n" 
+            "DIV LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$equal$types$int$%d\n"
+            "JUMPIFEQ $$error$zero$divide$%d LF@prec$notype$%d int@0\n" 
+            "IDIV LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$end$exp$%d\n" 
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$error$zero$divide$%d\n"
+            "EXIT int@9\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,label_number,var_number,label_number,var_number,
+            var_number+2,var_number+1,var_number,label_number,label_number,
+            label_number,var_number,
+            var_number+2,var_number+1,var_number,label_number,
+            label_number,label_number,label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+}
+
+void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tokenType e)
+{
+    char *code;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,var_number,
+            var_number,var_number,var_number+1,var_number+1,var_number+1,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type",
+            label_number,var_number,label_number,var_number+1,
+            label_number,var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n"
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$not$equal$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$not$equal$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n",
+            label_number,var_number,label_number,var_number,label_number,
+            label_number,var_number+1,var_number,var_number,label_number,
+            label_number,label_number,var_number+1, var_number+1,var_number+1,
+            label_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "LABEL $$not$equal$%d\n"
+            "MOVE LF@prec$notype$%d bool@false",
+            label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    if(e == TYPE_NEG_EQUAL){
+        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d",
+                var_number+2,var_number+2);
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+    fillString(&code,
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$equal$types$%d\n"
+            "EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+            label_number,label_number,var_number+2,var_number+1,
+            var_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    if(e == TYPE_NEG_EQUAL){
+        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d",
+                var_number+2,var_number+2);
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+    fillString(&code,
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,label_number,label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+}
+
+void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,tokenType e)
+{
+    char *code;
+    fillString(&code,
+            "\nDEFVAR LF@prec$notype$%d\n" 
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "POPS LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d",
+            var_number,var_number,var_number+1,var_number+1,var_number,
+            var_number,var_number,var_number+1,var_number+1,var_number+1,
+            var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
+        fillString(&code,"DEFVAR LF@prec$notype$%d",var_number+3);
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+    fillString(&code,
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type",
+            label_number,var_number,label_number,var_number+1,
+            label_number,var_number,label_number,var_number+1,
+            label_number,var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
+    fillString(&code,
+            "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n"
+            "LABEL $$equal$int$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$float$%d\n"
+            "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
+            "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "JUMP $$equal$types$%d\n"
+            "LABEL $$equal$types$%d",
+            label_number,var_number,label_number,var_number,label_number,
+            label_number,var_number+1,var_number,var_number,label_number,
+            label_number,label_number,var_number+1, var_number+1,var_number+1,
+            label_number,label_number);
+    DLInsertLast(l,code);
+    gb_free(code);
+    if(e == TYPE_LESS || e == TYPE_LESS_EQUAL){
+        fillString(&code,"LT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+              var_number+2,var_number+1,var_number);  
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+    else if(e == TYPE_GREAT || e == TYPE_GREAT_EQUAL){
+        fillString(&code,"GT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+              var_number+2,var_number+1,var_number);  
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+
+    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
+        fillString(&code,"EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
+                         "OR LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+              var_number+3,var_number+1,var_number,var_number+2,
+              var_number+3,var_number+2);  
+        DLInsertLast(l,code);
+        gb_free(code);
+    }
+
+    fillString(&code,
+            "JUMP $$end$exp$%d\n"
+            "LABEL $$error$types$%d\n"
+            "EXIT int@4\n"
+            "LABEL $$end$exp$%d\n"
+            "PUSHS LF@prec$notype$%d\n",
+            label_number,label_number,label_number,var_number+2);
+    DLInsertLast(l,code);
+    gb_free(code);
+}
+
+
+void generate_operation(TEvalStack *t,tDLList *l,htab_t* h)
+{
+    static htab_t *table = NULL;
+    static unsigned var_number= 0;
+    static unsigned label_number=0;
+
+    if(h != table){
+        var_number= 0;
+        label_number=0;
+        table = h;
+    }
+
+    TStackItemPtr symb2 = t->stack_top;
+    TStackItemPtr operator = symb2->prev;
+    //TStackItemPtr symb1 = operator->prev;
+    switch(operator->token){
+        case TYPE_PLUS:
+            generate_add(l,var_number,label_number);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_MINUS:
+            generate_subtract(l,var_number,label_number);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_MULT:
+            generate_multiply(l,var_number,label_number);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_DIV:
+            generate_divide(l,var_number,label_number);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_EQUAL:
+        case TYPE_NEG_EQUAL:
+            generate_equality(l,var_number,label_number,operator->token);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_GREAT:
+        case TYPE_LESS:
+            generate_comparsion(l,var_number,label_number,operator->token);
+            var_number+=3;
+            label_number++;
+            break;
+        case TYPE_GREAT_EQUAL:
+        case TYPE_LESS_EQUAL:
+            generate_comparsion(l,var_number,label_number,operator->token);
+            var_number+=4;
+            label_number++;
+            break;
+        default:
+            gb_exit_process(4);
+            break;
+    }
+}
+
+
+#define TYPE_NONE -1
+void rule_operators(TEvalStack *t,tDLList *l, htab_t *h)
+{
+    generate_operation(t,l,h);
+    es_top_pop(t);
+    es_top_pop(t);
+    es_top_pop(t);
+    es_top_pop(t);
+
+    es_push(t,false,true,TYPE_NONE,NULL,'E');
+}
+
+void generate_id(TEvalStack *t,tDLList *l, htab_t *h)
+{
+   TStackItemPtr term = t->stack_top;
+   struct htab_listitem *id;
+   char *code;
+   char *buffer = NULL;
+   switch(term->token){
+       case TYPE_ID:
+           id = htab_find(h, term->token_attribute);
+           if(id == NULL)
+               gb_exit_process(3);
+           else if(!((TLOCTab*)(id->object))->initialized) gb_exit_process(3);
+           else {
+               code=gb_malloc(strlen("PUSHS LF@")+strlen(term->token_attribute)+
+                       sizeof(char));
+               strcpy(code,"PUSHS LF@");
+               strcat(code,term->token_attribute);
+           }
+           break;
+        case TYPE_INT:
+           getVarInt(&buffer, term->token_attribute);
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           strcpy(code,"PUSHS ");
+           strcat(code,buffer);
+           break;
+        case TYPE_INT_EXPO:
+        case TYPE_FLOAT:
+        case TYPE_FLOAT_EXPO:
+           getVarFloat(&buffer, term->token_attribute);
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           strcpy(code,"PUSHS ");
+           strcat(code,buffer);
+           break;
+        case TYPE_NIL:
+           code = gb_malloc(strlen("PUSHS nil@nil") + sizeof(char));
+           strcpy(code,"PUSHS nil@nil");
+           break;
+        case TYPE_QUOT:
+        case TYPE_QUOT_EMPTY:
+           if(term->token == TYPE_QUOT)
+               getVarString(&buffer, term->token_attribute);
+           else
+               getVarString(&buffer, "");
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           strcpy(code,"PUSHS ");
+           strcat(code, buffer);
+           break;
+        default:
+           gb_exit_process(3);
+   }
+
+    DLInsertLast(l,code);
+}
+
+void rule_term_to_noterm(TEvalStack *t,tDLList *l,htab_t *h)
+{
+    generate_id(t,l,h);
     TStackItem term = es_top_pop(t);
     es_top_pop(t);
-    
-    es_push(t,false,true, term.token, term.token_attribute, term.info);
+    es_push(t,false,true, term.token, term.token_attribute, 'E');
 }
 
 void rule_brackets(TEvalStack *t)
@@ -250,6 +802,6 @@ void rule_brackets(TEvalStack *t)
     es_top_pop(t);
     
     es_push(t,nonterm.is_terminal,nonterm.is_nonterminal,nonterm.token,
-            nonterm.token_attribute,127);
+            nonterm.token_attribute,'E');
 }
     
