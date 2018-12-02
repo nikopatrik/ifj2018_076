@@ -250,7 +250,7 @@ void printCallFunc(tDLList *L,char *name)
 void printFuncLength(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer,"LABEL length\n"
+    addString(&buffer,"\nLABEL length\n"
                       "PUSHFRAME\n"
                       "DEFVAR LF@%retval\n"
                       "STRLEN LF@%retval LF@%param1\n"
@@ -263,14 +263,14 @@ void printFuncLength(tDLList *L)
 void printFuncSubstr(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer, "LABEL substr\n"
+    addString(&buffer, "\nLABEL substr\n"
     "PUSHFRAME\n"
     "DEFVAR LF@%retval\n"
     "MOVE LF@%retval string@\n"
     "DEFVAR LF@length_str\n"
     "CREATEFRAME\n"
-    "DEFVAR TF@param1\n"
-    "MOVE TF@param1 LF@param1\n"
+    "DEFVAR TF@%param1\n"
+    "MOVE TF@%param1 LF@%param1\n"
     "CALL $LENGTH\n"
     "MOVE LF@length_str TF@%retval\n"
     "DEFVAR LF@ret_cond\n"
@@ -278,34 +278,34 @@ void printFuncSubstr(tDLList *L)
     "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
     "EQ LF@ret_cond LF@length_str int@0\n"
     "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "LT LF@ret_cond LF@param2 int@0\n"
+    "LT LF@ret_cond LF@%param2 int@0\n"
     "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "GT LF@ret_cond LF@param2 LF@length_str\n"
+    "GT LF@ret_cond LF@%param2 LF@length_str\n"
     "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "EQ LF@ret_cond LF@param3 int@0\n"
+    "EQ LF@ret_cond LF@%param3 int@0\n"
     "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
     "DEFVAR LF@max_n\n"
     "MOVE LF@max_n LF@length_str\n"
-    "SUB LF@max_n LF@max_n LF@param2\n"
+    "SUB LF@max_n LF@max_n LF@%param2\n"
     "DEFVAR LF@edit_n_cond\n"
-    "LT LF@edit_n_cond LF@param3 int@0\n"
+    "LT LF@edit_n_cond LF@%param3 int@0\n"
     "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
-    "GT LF@edit_n_cond LF@param3 LF@max_n\n"
+    "GT LF@edit_n_cond LF@%param3 LF@max_n\n"
     "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
     "JUMP $substr$process\n"
     "LABEL $substr$edit_n\n"
-    "MOVE LF@param3 LF@max_n\n"
+    "MOVE LF@%param3 LF@max_n\n"
     "LABEL $substr$process\n"
     "DEFVAR LF@index\n"
-    "MOVE LF@index LF@param2\n"
+    "MOVE LF@index LF@%param2\n"
     "DEFVAR LF@char\n"
     "DEFVAR LF@vysl\n"
     "LABEL $SUBSTR$LOOP\n"
-    "GETCHAR LF@char LF@param1 LF@index\n"
+    "GETCHAR LF@char LF@%param1 LF@index\n"
     "CONCAT LF@%retval LF@%retval LF@char\n"
     "ADD LF@index LF@index int@1\n"
-    "SUB LF@param3 LF@param3 int@1\n"
-    "GT LF@vysl LF@param3 int@0\n"
+    "SUB LF@%param3 LF@%param3 int@1\n"
+    "GT LF@vysl LF@%param3 int@0\n"
     "JUMPIFEQ $SUBSTR$LOOP LF@vysl bool@true\n"
     "LABEL $SUBSTR$RETURN\n"
     "DEFVAR LF@final\n"
@@ -314,7 +314,7 @@ void printFuncSubstr(tDLList *L)
     "MOVE LF@%retval nil@nil\n"
     "LABEL $NOTNIL\n"
     "POPFRAME\n"
-    "RETURN" );
+    "RETURN\n" );
     DLInsertFirst(L,buffer);
     free(buffer);
 }
@@ -323,7 +323,7 @@ void printFuncSubstr(tDLList *L)
 void printFuncChr(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer,  "LABEL chr\n"
+    addString(&buffer,  "\nLABEL chr\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@%retval\n"
                         "DEFVAR LF@vysl\n"
@@ -332,9 +332,9 @@ void printFuncChr(tDLList *L)
                         "LT LF@vysl LF@%param1 int@256\n"
                         "JUMPIFEQ $ENDIF$CHR LF@vysl bool@FALSE\n"
                         "INT2CHAR LF@%retval LF@%param1\n"
-                        "JUMP $ISOK$CHR"
+                        "JUMP $ISOK$CHR\n"
                         "LABEL $ENDIF$CHR\n"
-                        "EXIT int@4"
+                        "EXIT int@4\n"
                         "LABEL $ISOK$CHR"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -345,7 +345,7 @@ void printFuncChr(tDLList *L)
 void printFuncOrd(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer, "LABEL ord\n"
+    addString(&buffer, "\nLABEL ord\n"
     "PUSHFRAME\n"
     "DEFVAR LF@%retval\n"
     "MOVE LF@%retval nil@nil\n"
