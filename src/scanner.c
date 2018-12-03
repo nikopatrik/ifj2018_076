@@ -138,7 +138,7 @@ int getNextToken(char **buffer)
 								}else
 									addChar(buffer, '"', length++);
 								continue;
-							//	new line	
+							//	new line
 							case 'n' :
 								if(length == 1){
 									firstChar(buffer, '\n');
@@ -172,7 +172,7 @@ int getNextToken(char **buffer)
 								continue;
 							// hex
 							case 'x' :
-								//	Check if char == {0-9} || {A-F} 
+								//	Check if char == {0-9} || {A-F}
 								if(((c = fgetc(f)) >= 48 && c <= 57) || (c >= 65 && c <= 70)){
 									char hex_escape[3];		// hexadecimal number
 									int char_escape;		// decimal value of char
@@ -268,13 +268,13 @@ int getNextToken(char **buffer)
 						}else{
                             ungetc(c,f);
                             return TYPE_INT;
-                            break;
                         }
                     }else{
                         length ++;
                         addChar(buffer,c,length);
                 	}
 				}
+                break;
 
 
 			case STATE_INT_E :
@@ -297,6 +297,7 @@ int getNextToken(char **buffer)
 						return TYPE_INT_EXPO;
 					}
 				}
+                break;
 
 
 			case STATE_INT_DOT :
@@ -326,6 +327,7 @@ int getNextToken(char **buffer)
                         addChar(buffer,c,length);
                     }
                 }
+                break;
 
 
             case STATE_FLOAT_E:
@@ -360,6 +362,7 @@ int getNextToken(char **buffer)
 						return TYPE_FLOAT_EXPO;
 					}
 				}
+                break;
 
 
 			case STATE_ID :
@@ -400,6 +403,7 @@ int getNextToken(char **buffer)
                         return TYPE_ID;
 					}
 				}
+                break;
 
 
 			case STATE_LCOM :
