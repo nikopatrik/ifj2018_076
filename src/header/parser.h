@@ -44,4 +44,8 @@ bool next_brc_param(tokenType*, char**);
 
 bool expr(tokenType*, char**);
 
+void checkWhile();
+
+void checkIf();
+
 #endif

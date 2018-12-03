@@ -2,7 +2,7 @@
 
 #include "header/generate.h"
 
-static int id_Param = 1, id_if = 1, id_defParam = 1, id_dump = 1;
+static int id_Param = 1, id_if = 0, id_defParam = 1, id_dump = 1;
 static int chr=0,substr=0,ord=0,length=0;
 static tStack stack;
 
@@ -238,7 +238,7 @@ void printParam(tDLList *L,TYPES type,char *value)
 void printDefParam(tDLList *L, char *name){
     char *buffer = NULL;
     fillString(&buffer, "DEFVAR LF@%s\n"
-                        "MOVE LF@%s param%d\n"
+                        "MOVE LF@%s LF@$param%d\n"
                         ,name, name, id_defParam);
 
     DLPostInsert(L, buffer);
@@ -388,7 +388,7 @@ void printAllFunc(tDLList *L){
 void printFuncBegin(tDLList *L, char *fID)
 {
     char *buffer = NULL;
-    fillString(&buffer, "\nLABEL $%s\n"
+    fillString(&buffer, "\nLABEL %s\n"
                         "PUSHFRAME\n"
                         "DEFVAR LF@$retval\n"
                         ,fID);
@@ -509,7 +509,7 @@ void printMainEnd()
     fprintf(stdout, "CLEARS\nPOPFRAME\n");
 }
 
-void printIf(tDLList *L){                   //TODO: Skontrolovat prazdny string???
+void printIf(tDLList *L){                 
     char *buffer = NULL;
     id_if++;
     SPush(&stack,id_if);
@@ -533,8 +533,8 @@ void printIf(tDLList *L){                   //TODO: Skontrolovat prazdny string?
                         "JUMP $if%d\n"
                         "LABEL $isbool%d\n"
                         "JUMPIFEQ $else%d LF@if$cond%d bool@false\n"
-                        "LABEL $if%d\t\t\t\t#koniecPRINTIF\n"
-                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if
+                        "LABEL $if%d\n"
+                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if, id_if, id_if
                      ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if);
 
     DLPostInsert(L, buffer);
@@ -546,7 +546,7 @@ void printElse(tDLList *L){
     char *buffer = NULL;
     int id_print = STop(&stack);
     fillString(&buffer,  "JUMP $endif%d\n"
-                        "LABEL $else%d\t\t\t\t#koniec PRINTELSE\n"
+                        "LABEL $else%d\n"
                         , id_print, id_print);
     DLPostInsert(L, buffer);
     DLSucc(L);
@@ -556,7 +556,7 @@ void printElse(tDLList *L){
 void printEndif(tDLList *L){
     char *buffer = NULL;
     int id_print = STopPop(&stack);
-    fillString(&buffer,  "LABEL $endif%d\t\t\t\t#koniecENDIF\n"
+    fillString(&buffer,  "LABEL $endif%d\n"
                         ,id_print);
     DLPostInsert(L, buffer);
     DLSucc(L);

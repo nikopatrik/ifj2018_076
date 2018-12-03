@@ -688,7 +688,6 @@ void generate_operation(TEvalStack *t,tDLList *l,htab_t* h)
 
     if(h != table){
         var_number= 0;
-        label_number=0;
         table = h;
     }
 

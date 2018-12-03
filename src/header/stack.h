@@ -6,7 +6,7 @@
 #ifndef _STACK_H_
 #define _STACK_H_
 
-#define MAXSTACK 500                     /* maximální počet prvků v zásobníku */
+#define MAXSTACK 5000                     /* maximální počet prvků v zásobníku */
 
 typedef struct my_stack{                          /* zásobník hodnot typu tBTNodePtr */
     int a[MAXSTACK];

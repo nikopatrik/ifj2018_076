@@ -24,10 +24,14 @@ bool parse()
     check_defined();
     printHead();
     printAllFunc(&L);
+    checkIf();
+    checkWhile();
     DLPrintList(&L);
     printMainEnd();
     return ret;
 }
+
+
 
 bool st_list(tokenType* token, char** buffer)
 {
@@ -48,6 +52,16 @@ bool stat(tokenType* token, char** buffer)
         else
             gb_exit_process(2);
     }
+
+    else if(*token == TYPE_L_BRE){     //SIGN
+        ungetToken(*token, *buffer);
+        TGLOBTab *htab_temp = htab_return_pointer();
+        if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
+            if(def_count != 0)
+                DLPostInsert(&L, "POPS LF@retval");
+        }
+    }
+
     //////////////////////////////////////////////////// 04
     else if(*token == TYPE_FUNC_ID || *token == TYPE_PRE_FUNC){              //FUNC_ID
         TGLOBTab* my_glob_obj = htab_call_func(*buffer);        // Vloz do htab FUNC_ID undefined
@@ -96,8 +110,8 @@ bool stat(tokenType* token, char** buffer)
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "if")){     // IF
         if_count++;
         printIf(&L);
-        TGLOBTab *temp = htab_return_pointer();
-        if(expression_parse(TYPE_KEYWORD, "then", temp->loc_symtab, &L)){       //<EXPRESSION>
+        TGLOBTab *htab_temp = htab_return_pointer();
+        if(expression_parse(TYPE_KEYWORD, "then", htab_temp->loc_symtab, &L)){       //<EXPRESSION>
             *token = getNextToken(buffer);
             if(*token == TYPE_EOL){      //EOL
                 *token = getNextToken(buffer);
@@ -122,8 +136,8 @@ bool stat(tokenType* token, char** buffer)
     else if(*token == TYPE_KEYWORD && !strcmp(*buffer, "while")){      //WHILE 
         while_count++;                          //TODO: DEFVAR PRED WHILE
         printWhile(&L);
-        TGLOBTab *temp = htab_return_pointer();
-        if(expression_parse(TYPE_KEYWORD, "do", temp->loc_symtab, &L)){       //<EXPRESSION>
+        TGLOBTab *htab_temp = htab_return_pointer();
+        if(expression_parse(TYPE_KEYWORD, "do", htab_temp->loc_symtab, &L)){       //<EXPRESSION>
             *token = getNextToken(buffer);
             if(*token == TYPE_EOL){      //EOL
                 *token = getNextToken(buffer);
@@ -239,12 +253,23 @@ bool id_item(tokenType* token, char** buffer)
         else{                               //tak to je func
             printCallFunc(&L, temp_buff);                 // Volanie funkcie bez parametrov
             DLPreInsert(&L, "CREATEFRAME\n");           // CREATEFRAME pred parametrami
-            printFuncReturn(&L);
+            if(def_count != 0)
+                printFuncReturn(&L);
         }    
         *token = getNextToken(buffer);
         return true;
     }
     //////////////////////////////////////// 14
+    else if(*token >= TYPE_PLUS && *token <= TYPE_NEG_EQUAL){     //SIGN
+        ungetToken(temp, temp_buff);
+        ungetToken(*token, *buffer);
+        TGLOBTab *htab_temp = htab_return_pointer();
+        if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
+            if(def_count != 0)
+                DLPostInsert(&L, "POPS LF@retval");
+        }
+            
+    }
     else{
         TGLOBTab* my_glob_obj = htab_call_func(temp_buff);        // Vloz do htab FUNC_ID undefined
         printCallFunc(&L, temp_buff);                         // Volanie funkcie, params preinsert
@@ -319,7 +344,7 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
     //////////////////////////////////////// 17
     else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE){   //<EXPR> 
         ungetToken(*token, *buffer);
-        TGLOBTab *temp = htab_return_pointer();
+        TGLOBTab *htab_temp = htab_return_pointer();
        // if(check_id(id_buffer)){            //ak je id definovane
         printAssignExpr(&L, id_buffer); //prirad
        /* }
@@ -327,7 +352,7 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
             printDefine(&L, id_buffer);     //inak aj definuj
             printAssignExpr(&L, id_buffer);
         }*/
-        if(expression_parse(TYPE_EOL, NULL, temp->loc_symtab, &L)){
+        if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
             if(def_count != 0){                 //ak sme vo func tak prirad to retval
                 printRetval(&L, id_buffer);
             }
@@ -372,15 +397,9 @@ bool next(tokenType* token, char** buffer, char *id_buffer)
     else if(*token >= TYPE_PLUS && *token <= TYPE_NEG_EQUAL){     //SIGN
         ungetToken(temp, temp_buff);
         ungetToken(*token, *buffer);
-        TGLOBTab *temp = htab_return_pointer();
-        //if(check_id(id_buffer)){            //ak je id definovane
+        TGLOBTab *htab_temp = htab_return_pointer();
         printAssignExpr(&L, id_buffer); //prirad
-       /* }
-        else{ 
-            printDefine(&L, id_buffer);     //inak aj definuj
-            printAssignExpr(&L, id_buffer);
-        }*/
-        if(expression_parse(TYPE_EOL, NULL, temp->loc_symtab, &L)){                  //<EXPR>
+        if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){                  //<EXPR>
             if(def_count != 0){                 //ak sme vo func tak prirad to retval
                 printRetval(&L, id_buffer);
             }
@@ -413,7 +432,7 @@ bool next(tokenType* token, char** buffer, char *id_buffer)
         printCallFunc(&L, temp_buff);                 // Volanie funkcie, params preinsert
         DLPreInsert(&L, "CREATEFRAME\n");           // CREATEFRAME pred parametrami
         *token = getNextToken(buffer);
-        if(bracket(token, buffer))         //<BRACKET>
+        if(bracket(token, buffer)){         //<BRACKET>
             htab_set_param_count(my_glob_obj, param_count);
             param_count = 0;
             printAssignFunc(&L, id_buffer);
@@ -424,6 +443,7 @@ bool next(tokenType* token, char** buffer, char *id_buffer)
                 *token = getNextToken(buffer);
                 return true;
             }
+        }
         gb_exit_process(2);
     }
     else
@@ -630,4 +650,74 @@ bool next_brc_param(tokenType* token, char** buffer)
     }
     else
         gb_exit_process(2);
+}
+
+void checkIf()
+{
+    int check = 0;
+    tDLElemPtr temp_ptr, my_ptr, iterate = L.First;
+    while(iterate != NULL){
+        my_ptr = iterate;
+        iterate = iterate->rptr;
+        if(strlen(my_ptr->instruction) >= 15)
+            if(strncmp(my_ptr->instruction, "POPS LF@if$cond", 15) == 0){
+                if(check == 0){
+                    temp_ptr = my_ptr;
+                }
+                check++;
+            }
+
+        if(strlen(my_ptr->instruction) >= 12)
+            if(strncmp(my_ptr->instruction, "LABEL $endif", 12) == 0){
+                check--;
+            }
+
+        if(check){
+            if(strlen(my_ptr->instruction) >= 9)
+                if(strncmp(my_ptr->instruction, "DEFVAR LF", 9) == 0){
+                    my_ptr->lptr->rptr = my_ptr->rptr;
+                    my_ptr->rptr->lptr = my_ptr->lptr;
+                    my_ptr->rptr = temp_ptr;
+                    my_ptr->lptr = temp_ptr->lptr;
+                    my_ptr->lptr->rptr = my_ptr;
+                    my_ptr->rptr->lptr = my_ptr;
+                }
+        }
+        
+    }
+}
+
+void checkWhile()
+{
+    int check = 0;
+    tDLElemPtr temp_ptr, my_ptr, iterate = L.First;
+    while(iterate != NULL){
+        my_ptr = iterate;
+        iterate = iterate->rptr;
+        if(strlen(my_ptr->instruction) >= 17)
+            if(strncmp(my_ptr->instruction, "LABEL start$while", 17) == 0){
+                if(check == 0){
+                    temp_ptr = my_ptr;
+                }
+                check++;
+            }
+
+        if(strlen(my_ptr->instruction) >= 15)
+            if(strncmp(my_ptr->instruction, "LABEL $endwhile", 15) == 0){
+                check--;
+            }
+
+        if(check){
+            if(strlen(my_ptr->instruction) >= 9)
+                if(strncmp(my_ptr->instruction, "DEFVAR LF", 9) == 0){
+                    my_ptr->lptr->rptr = my_ptr->rptr;
+                    my_ptr->rptr->lptr = my_ptr->lptr;
+                    my_ptr->rptr = temp_ptr;
+                    my_ptr->lptr = temp_ptr->lptr;
+                    my_ptr->lptr->rptr = my_ptr;
+                    my_ptr->rptr->lptr = my_ptr;
+                }
+        }
+        
+    }
 }
