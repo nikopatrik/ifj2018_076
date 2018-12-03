@@ -21,11 +21,11 @@ bool parse()
     printMainBegin(&L);
     tokenType token = getNextToken(&buffer);
     bool ret = st_list(&token, &buffer);
+    check_defined();
     printHead();
     printAllFunc(&L);
     DLPrintList(&L);
     printMainEnd();
-    check_defined();
     return ret;
 }
 
@@ -488,6 +488,7 @@ bool param(tokenType* token, char** buffer)
             printParam(&L, FLOAT, *buffer);
         }
         *token = getNextToken(buffer);
+        param_count++;
         if(next_param(token, buffer))        //<NEXT-PARAM>
             return true;
         else

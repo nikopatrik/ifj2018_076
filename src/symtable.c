@@ -196,8 +196,9 @@ void htab_set_main(){
 
 void htab_find_id(char *key){
     if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){  // Ak nenaslo ID
-        if((item = htab_lookup_add(global_table, key, glob_create)) == NULL){ // A nenaslo funkc
+        if((item = htab_find(global_table, key)) == NULL){ // A nenaslo funkc
             htab_t* my_local_table = htab_init(HTSIZE);                    
+            item = htab_lookup_add(global_table, key, glob_create);
             TGLOBTab* my_glob_obj = (TGLOBTab*) item->object;
             glob_init(my_glob_obj, 0, INT, my_local_table, false);  // Pridaj funkc s 0 params
         }
