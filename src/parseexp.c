@@ -8,9 +8,6 @@
 #include "header/generate.h"
 #include "header/instrlist.h"
 
-// TODO
-// Implementovat pracu s tabulkov symbolov
-// Naucit sa generovat funkcie.
 
 // Precedence table:
 static char precedence_table[TERM_COUNT][TERM_COUNT] = {
@@ -234,18 +231,20 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
 {
     char *code = NULL;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n" 
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,
-            var_number+2,var_number,var_number,var_number,
-            var_number+1,var_number+1, var_number+1);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
@@ -256,7 +255,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
             "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
             "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n"
-            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string",
+            "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n",
             label_number,var_number,label_number,var_number+1,
             label_number,var_number,label_number,var_number+1,
             label_number,var_number,var_number+1,
@@ -274,7 +273,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
             "JUMP $$additions$%d\n"
             "LABEL $$equal$types$%d\n"
-            "JUMPIFEQ $$string$concat$%d LF@prec$notype$%d$type string@string",
+            "JUMPIFEQ $$string$concat$%d LF@prec$notype$%d$type string@string\n",
             label_number,label_number,var_number+1,var_number,var_number,
             label_number,label_number,label_number,var_number+1,
             var_number+1,var_number+1,label_number,label_number,
@@ -304,18 +303,20 @@ void generate_subtract(tDLList *l, unsigned var_number, unsigned label_number)
 {
     char *code;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n"
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,var_number,
-            var_number,var_number,var_number+1,var_number+1,var_number+1,
-            var_number+2);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
@@ -327,7 +328,7 @@ void generate_subtract(tDLList *l, unsigned var_number, unsigned label_number)
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
             "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
             "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
-            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n",
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
@@ -364,18 +365,20 @@ void generate_multiply(tDLList *l, unsigned var_number, unsigned label_number)
 {
     char *code;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n"
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,var_number,
-            var_number,var_number,var_number+1,var_number+1,var_number+1,
-            var_number+2);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
@@ -387,7 +390,7 @@ void generate_multiply(tDLList *l, unsigned var_number, unsigned label_number)
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
             "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
             "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
-            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n",
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
@@ -423,18 +426,20 @@ void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
 {
     char *code;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n"
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,var_number,
-            var_number,var_number,var_number+1,var_number+1,var_number+1,
-            var_number+2);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
@@ -446,7 +451,7 @@ void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@string\n"
             "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n"
             "JUMPIFEQ $$equal$int$%d LF@prec$notype$%d$type string@int\n"
-            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float",
+            "JUMPIFEQ $$equal$float$%d LF@prec$notype$%d$type string@float\n",
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
             label_number,var_number,label_number, var_number+1,
@@ -497,24 +502,26 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
 {
     char *code;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n"
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,var_number,
-            var_number,var_number,var_number+1,var_number+1,var_number+1,
-            var_number+2);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
-            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type",
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n",
             label_number,var_number,label_number,var_number+1,
             label_number,var_number,var_number+1);
     DLInsertLast(l,code);
@@ -538,12 +545,12 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
     gb_free(code);
     fillString(&code,
             "LABEL $$not$equal$%d\n"
-            "MOVE LF@prec$notype$%d bool@false",
+            "MOVE LF@prec$notype$%d bool@false\n",
             label_number,var_number+2);
     DLInsertLast(l,code);
     gb_free(code);
     if(e == TYPE_NEG_EQUAL){
-        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d",
+        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d\n",
                 var_number+2,var_number+2);
         DLInsertLast(l,code);
         gb_free(code);
@@ -551,13 +558,13 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
     fillString(&code,
             "JUMP $$end$exp$%d\n"
             "LABEL $$equal$types$%d\n"
-            "EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+            "EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
             label_number,label_number,var_number+2,var_number+1,
             var_number);
     DLInsertLast(l,code);
     gb_free(code);
     if(e == TYPE_NEG_EQUAL){
-        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d",
+        fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d\n",
                 var_number+2,var_number+2);
         DLInsertLast(l,code);
         gb_free(code);
@@ -577,22 +584,24 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
 {
     char *code;
     fillString(&code,
-            "\nDEFVAR LF@prec$notype$%d\n" 
-            "POPS LF@prec$notype$%d\n"
             "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d\n"
+            "DEFVAR LF@prec$notype$%d$type\n"
+            "DEFVAR LF@prec$notype$%d$type\n",
+            var_number,var_number+1,var_number+2,
+            var_number,var_number+1);
+    fillString(&code,
             "POPS LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
+            "POPS LF@prec$notype$%d\n"
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d$type\n"
-            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
-            "DEFVAR LF@prec$notype$%d",
-            var_number,var_number,var_number+1,var_number+1,var_number,
-            var_number,var_number,var_number+1,var_number+1,var_number+1,
-            var_number+2);
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n",
+            var_number,var_number+1,var_number,var_number,
+            var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
-        fillString(&code,"DEFVAR LF@prec$notype$%d",var_number+3);
+        fillString(&code,"DEFVAR LF@prec$notype$%d\n",var_number+3);
         DLInsertLast(l,code);
         gb_free(code);
     }
@@ -601,7 +610,7 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@nil\n"
-            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type",
+            "JUMPIFEQ $$equal$types$%d LF@prec$notype$%d$type LF@prec$notype$%d$type\n",
             label_number,var_number,label_number,var_number+1,
             label_number,var_number,label_number,var_number+1,
             label_number,var_number,var_number+1);
@@ -618,7 +627,7 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
             "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
             "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
             "JUMP $$equal$types$%d\n"
-            "LABEL $$equal$types$%d",
+            "LABEL $$equal$types$%d\n",
             label_number,var_number,label_number,var_number,label_number,
             label_number,var_number+1,var_number,var_number,label_number,
             label_number,label_number,var_number+1, var_number+1,var_number+1,
@@ -626,13 +635,13 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
     DLInsertLast(l,code);
     gb_free(code);
     if(e == TYPE_LESS || e == TYPE_LESS_EQUAL){
-        fillString(&code,"LT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+        fillString(&code,"LT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+2,var_number+1,var_number);  
         DLInsertLast(l,code);
         gb_free(code);
     }
     else if(e == TYPE_GREAT || e == TYPE_GREAT_EQUAL){
-        fillString(&code,"GT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+        fillString(&code,"GT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+2,var_number+1,var_number);  
         DLInsertLast(l,code);
         gb_free(code);
@@ -640,7 +649,7 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
 
     if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
         fillString(&code,"EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
-                         "OR LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d",
+                         "OR LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+3,var_number+1,var_number,var_number+2,
               var_number+3,var_number+2);  
         DLInsertLast(l,code);

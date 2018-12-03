@@ -514,7 +514,7 @@ void DLPrintList (tDLList *L){
     tDLElemPtr TMP;
     TMP = L->First;
     while(TMP){
-        printf("%s\n",TMP->instruction);
+        printf("%s",TMP->instruction);
         TMP = TMP->rptr;
     }
 }
