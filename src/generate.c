@@ -114,7 +114,7 @@ void getVarString(char **buffer,char *value)
     }
     else
     {
-        char *string;
+        char *string = NULL;
         string = malloc(size + 2);
         strcpy(string,value);
         convertToString(&string);
@@ -192,22 +192,38 @@ void printParam(tDLList *L,TYPES type,char *value)
     char *var = NULL;
     switch (type) {
         case NONE:
-            fillString(&buffer,"DEFVAR TF@$param%d\nMOVE TF@$param%d LF@%s\n",id_Param, id_Param, value);
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d LF@%s\n ", id_Param, value);
             break;
         case INT:
-            fillString(&buffer,"DEFVAR TF@$param%d\nMOVE TF@$param%d ",id_Param,id_Param);
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d ",id_Param);
             getVarInt(&var,value);
             addString(&buffer,var);
             addString(&buffer,"\n");
             break;
         case FLOAT:
-            fillString(&buffer,"DEFVAR TF@$param%d\nMOVE TF@$param%d ",id_Param,id_Param);
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d ",id_Param);
             getVarFloat(&var,value);
             addString(&buffer,var);
             addString(&buffer,"\n");
             break;
         case STRING:
-            fillString(&buffer,"DEFVAR TF@$param%d\nMOVE TF@$param%d ",id_Param,id_Param);
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d ",id_Param);
             getVarString(&var,value);
             addString(&buffer,var);
             addString(&buffer,"\n");
@@ -261,58 +277,58 @@ void printFuncLength(tDLList *L)
 void printFuncSubstr(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer, "\nLABEL substr\n"
-    "PUSHFRAME\n"
-    "DEFVAR LF@$retval\n"
-    "MOVE LF@$retval string@\n"
-    "DEFVAR LF@length_str\n"
-    "CREATEFRAME\n"
-    "DEFVAR TF@$param1\n"
-    "MOVE TF@$param1 LF@$param1\n"
-    "CALL length\n"
-    "MOVE LF@length_str TF@$retval\n"
-    "DEFVAR LF@ret_cond\n"
-    "LT LF@ret_cond LF@length_str int@0\n"
-    "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "EQ LF@ret_cond LF@length_str int@0\n"
-    "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "LT LF@ret_cond LF@$param2 int@0\n"
-    "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "GT LF@ret_cond LF@$param2 LF@length_str\n"
-    "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "EQ LF@ret_cond LF@$param3 int@0\n"
-    "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
-    "DEFVAR LF@max_n\n"
-    "MOVE LF@max_n LF@length_str\n"
-    "SUB LF@max_n LF@max_n LF@$param2\n"
-    "DEFVAR LF@edit_n_cond\n"
-    "LT LF@edit_n_cond LF@$param3 int@0\n"
-    "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
-    "GT LF@edit_n_cond LF@$param3 LF@max_n\n"
-    "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
-    "JUMP $substr$process\n"
-    "LABEL $substr$edit_n\n"
-    "MOVE LF@$param3 LF@max_n\n"
-    "LABEL $substr$process\n"
-    "DEFVAR LF@index\n"
-    "MOVE LF@index LF@$param2\n"
-    "DEFVAR LF@char\n"
-    "DEFVAR LF@vysl\n"
-    "LABEL $SUBSTR$LOOP\n"
-    "GETCHAR LF@char LF@$param1 LF@index\n"
-    "CONCAT LF@$retval LF@$retval LF@char\n"
-    "ADD LF@index LF@index int@1\n"
-    "SUB LF@$param3 LF@$param3 int@1\n"
-    "GT LF@vysl LF@$param3 int@0\n"
-    "JUMPIFEQ $SUBSTR$LOOP LF@vysl bool@true\n"
-    "LABEL $SUBSTR$RETURN\n"
-    "DEFVAR LF@final\n"
-    "EQ LF@final LF@$retval string@\n"
-    "JUMPIFEQ $NOTNIL LF@final bool@FALSE\n"
-    "MOVE LF@$retval nil@nil\n"
-    "LABEL $NOTNIL\n"
-    "POPFRAME\n"
-    "RETURN\n" );
+    addString(&buffer,  "\nLABEL substr\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@$retval\n"
+                        "MOVE LF@$retval string@\n"
+                        "DEFVAR LF@length_str\n"
+                        "CREATEFRAME\n"
+                        "DEFVAR TF@$param1\n"
+                        "MOVE TF@$param1 LF@$param1\n"
+                        "CALL length\n"
+                        "MOVE LF@length_str TF@$retval\n"
+                        "DEFVAR LF@ret_cond\n"
+                        "LT LF@ret_cond LF@length_str int@0\n"
+                        "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
+                        "EQ LF@ret_cond LF@length_str int@0\n"
+                        "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
+                        "LT LF@ret_cond LF@$param2 int@0\n"
+                        "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
+                        "GT LF@ret_cond LF@$param2 LF@length_str\n"
+                        "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
+                        "EQ LF@ret_cond LF@$param3 int@0\n"
+                        "JUMPIFEQ $SUBSTR$RETURN LF@ret_cond bool@true\n"
+                        "DEFVAR LF@max_n\n"
+                        "MOVE LF@max_n LF@length_str\n"
+                        "SUB LF@max_n LF@max_n LF@$param2\n"
+                        "DEFVAR LF@edit_n_cond\n"
+                        "LT LF@edit_n_cond LF@$param3 int@0\n"
+                        "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
+                        "GT LF@edit_n_cond LF@$param3 LF@max_n\n"
+                        "JUMPIFEQ $substr$edit_n LF@edit_n_cond bool@true\n"
+                        "JUMP $substr$process\n"
+                        "LABEL $substr$edit_n\n"
+                        "MOVE LF@$param3 LF@max_n\n"
+                        "LABEL $substr$process\n"
+                        "DEFVAR LF@index\n"
+                        "MOVE LF@index LF@$param2\n"
+                        "DEFVAR LF@char\n"
+                        "DEFVAR LF@vysl\n"
+                        "LABEL $SUBSTR$LOOP\n"
+                        "GETCHAR LF@char LF@$param1 LF@index\n"
+                        "CONCAT LF@$retval LF@$retval LF@char\n"
+                        "ADD LF@index LF@index int@1\n"
+                        "SUB LF@$param3 LF@$param3 int@1\n"
+                        "GT LF@vysl LF@$param3 int@0\n"
+                        "JUMPIFEQ $SUBSTR$LOOP LF@vysl bool@true\n"
+                        "LABEL $SUBSTR$RETURN\n"
+                        "DEFVAR LF@final\n"
+                        "EQ LF@final LF@$retval string@\n"
+                        "JUMPIFEQ $NOTNIL LF@final bool@FALSE\n"
+                        "MOVE LF@$retval nil@nil\n"
+                        "LABEL $NOTNIL\n"
+                        "POPFRAME\n"
+                        "RETURN\n" );
     DLInsertFirst(L,buffer);
     free(buffer);
 }
@@ -343,21 +359,21 @@ void printFuncChr(tDLList *L)
 void printFuncOrd(tDLList *L)
 {
     char *buffer = NULL;
-    addString(&buffer, "\nLABEL ord\n"
-    "PUSHFRAME\n"
-    "DEFVAR LF@$retval\n"
-    "MOVE LF@$retval nil@nil\n"
-    "DEFVAR LF@vysl\n"
-    "DEFVAR LF@length\n"
-    "STRLEN LF@length LF@$param1\n"
-    "LT LF@vysl LF@$param2 int@0\n"
-    "JUMPIFEQ $ENDIF$ORD LF@vysl bool@TRUE\n"
-    "LT LF@vysl LF@$param2 LF@length\n"
-    "JUMPIFEQ $ENDIF$ORD LF@vysl bool@FALSE\n"
-    "STRI2INT LF@$retval LF@$param1 LF@$param2\n"
-    "LABEL $ENDIF$ORD\n"
-    "POPFRAME\n"
-    "RETURN\n");
+    addString(&buffer,  "\nLABEL ord\n"
+                        "PUSHFRAME\n"
+                        "DEFVAR LF@$retval\n"
+                        "MOVE LF@$retval nil@nil\n"
+                        "DEFVAR LF@vysl\n"
+                        "DEFVAR LF@length\n"
+                        "STRLEN LF@length LF@$param1\n"
+                        "LT LF@vysl LF@$param2 int@0\n"
+                        "JUMPIFEQ $ENDIF$ORD LF@vysl bool@TRUE\n"
+                        "LT LF@vysl LF@$param2 LF@length\n"
+                        "JUMPIFEQ $ENDIF$ORD LF@vysl bool@FALSE\n"
+                        "STRI2INT LF@$retval LF@$param1 LF@$param2\n"
+                        "LABEL $ENDIF$ORD\n"
+                        "POPFRAME\n"
+                        "RETURN\n");
     DLInsertFirst(L,buffer);
     free(buffer);
 }
@@ -396,19 +412,28 @@ void printDumpInput(tDLList *L, TYPES type)
     char *buffer = NULL;
     switch (type){
         case INT:
-            fillString(&buffer,"DEFVAR LF@$dump%d\n"
-                                "READ LF@$dump%d int\n"
-                                ,id_dump,id_dump);
+            fillString(&buffer,"DEFVAR LF@$dump%d\n",id_dump);
+            DLPostInsert(L,buffer);
+            DLSucc(L);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"READ LF@$dump%d int\n",id_dump);
             break;
         case FLOAT:
-            fillString(&buffer,"DEFVAR LF@$dump%d\n"
-                                "READ LF@$dump%d float\n"
-                                ,id_dump,id_dump);
+            fillString(&buffer,"DEFVAR LF@$dump%d\n",id_dump);
+            DLPostInsert(L,buffer);
+            DLSucc(L);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"READ LF@$dump%d float\n",id_dump);
             break;
         case STRING:
-            fillString(&buffer,"DEFVAR LF@$dump%d\n"
-                                "READ LF@$dump%d string\n"
-                                ,id_dump,id_dump);
+            fillString(&buffer,"DEFVAR LF@$dump%d\n",id_dump);
+            DLPostInsert(L,buffer);
+            DLSucc(L);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"READ LF@$dump%d string\n",id_dump);
             break;
     }
     id_dump++;
@@ -489,8 +514,12 @@ void printIf(tDLList *L){                   //TODO: Skontrolovat prazdny string?
     id_if++;
     SPush(&stack,id_if);
     fillString(&buffer, "DEFVAR LF@if$cond%d\n"
-                        "POPS LF@if$cond%d\n"
-                        "DEFVAR LF@$type%d\n"
+                        "DEFVAR LF@$type%d\n",id_if,id_if);
+    DLPostInsert(L, buffer);
+    DLSucc(L);
+    free(buffer);
+    buffer = NULL;
+    fillString(&buffer, "POPS LF@if$cond%d\n"
                         "TYPE LF@$type%d LF@if$cond%d\n"
                         "JUMPIFEQ $else%d LF@$type%d string@nil\n"
                         "JUMPIFEQ $isint%d LF@$type%d string@int\n"
@@ -505,7 +534,7 @@ void printIf(tDLList *L){                   //TODO: Skontrolovat prazdny string?
                         "LABEL $isbool%d\n"
                         "JUMPIFEQ $else%d LF@if$cond%d bool@false\n"
                         "LABEL $if%d\t\t\t\t#koniecPRINTIF\n"
-                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if
+                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if
                      ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if);
 
     DLPostInsert(L, buffer);
@@ -546,8 +575,12 @@ void printWhile(tDLList *L){
     buffer = NULL;
 
     fillString(&buffer, "DEFVAR LF@while$cond%d\n"
-                        "POPS LF@while$cond%d\n"
-                        "DEFVAR LF@$type%d\n"
+                        "DEFVAR LF@$type%d\n",id_if,id_if);
+    DLPostInsert(L, buffer);
+    DLSucc(L);
+    free(buffer);
+    buffer = NULL;
+    fillString(&buffer, "POPS LF@while$cond%d\n"
                         "TYPE LF@$type%d LF@while$cond%d\n"
                         "JUMPIFEQ $endwhile%d LF@$type%d string@nil\n"
                         "JUMPIFEQ $isint%d LF@$type%d string@int\n"
@@ -562,7 +595,7 @@ void printWhile(tDLList *L){
                         "LABEL $isbool%d\n"
                         "JUMPIFEQ $endwhile%d LF@while$cond%d bool@false\n"
                         "LABEL $while%d\t\t\t\t#koniecPRINTWHILE\n"
-                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if
+                        ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if
                 ,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if,id_if);
 
     DLPostInsert(L, buffer);
@@ -582,16 +615,3 @@ void printEndwhile(tDLList *L){
     free(buffer);
 
 }
-
-
-    // fprintf(f, "JUMP $$ENDIF%d\n",id_if);
-    // fprintf(f, "LABEL $$ENFIF%d\n",id_if);
-    //
-    // fprintf(f, "JUMP $$ENDIF%d\n",id_if);
-    // fprintf(f, "LABEL $$ELSE%d\n",id_if);
-    // fprintf(f, "LABEL $$ENDIF%d\n",id_if);
-    //
-    //
-    // fprintf(f, "LABEL $$WHILE%d\n",id_while);
-    // fprintf(f, "JUMP $$WHILE%d\n", id_while);
-    // fprintf(f, "LABEL $$ENDIF%d\n", id_while);
