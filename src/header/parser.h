@@ -26,9 +26,9 @@ bool end_st_list(tokenType*, char**);
 
 bool id_item(tokenType*, char**);
 
-bool assign(tokenType*, char**);
+bool assign(tokenType*, char**, char*);
 
-bool next(tokenType*, char**);
+bool next(tokenType*, char**, char*);
 
 bool func(tokenType*, char**);
 

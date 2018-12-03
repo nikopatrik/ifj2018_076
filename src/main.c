@@ -20,9 +20,9 @@ int main(){
     //myQueueFree();
     gb_release_resources();
     if(corr == true){
-        printf("correct!\n");
+        printf("#correct!\n");
         return 0;
     }
     else
-        printf("wrong!\n");
+        printf("#wrong!\n");
 }

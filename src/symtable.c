@@ -114,8 +114,8 @@ void htab_setup(){
     glob_obj =item->object;
 }
 
-htab_t* htab_return_pointer(){
-    return global_table;
+TGLOBTab* htab_return_pointer(){
+    return glob_obj;
 }
 
 TGLOBTab* htab_def_func(char* key){
@@ -246,6 +246,13 @@ void global_def(const char* key, void* object)
 
 void check_defined(){
     htab_foreach(global_table, global_def);
+}
+
+bool check_id(char *key){
+    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL)      //ak nenajdes id
+        return false;
+    else
+        return true;
 }
 
 unsigned htab_hash_function(const char *key)

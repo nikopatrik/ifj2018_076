@@ -245,7 +245,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             "TYPE LF@prec$notype$%d$type LF@prec$notype$%d",
             var_number,var_number,var_number+1,var_number+1,
             var_number+2,var_number,var_number,var_number,
-            var_number+1,var_number+1);
+            var_number+1,var_number+1, var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
     fillString(&code,
@@ -746,28 +746,32 @@ void generate_id(TEvalStack *t,tDLList *l, htab_t *h)
            else if(!((TLOCTab*)(id->object))->initialized) gb_exit_process(3);
            else {
                code=gb_malloc(strlen("PUSHS LF@")+strlen(term->token_attribute)+
-                       sizeof(char));
+                       2*sizeof(char));
                strcpy(code,"PUSHS LF@");
                strcat(code,term->token_attribute);
+               strcat(code, "\n");
            }
            break;
         case TYPE_INT:
            getVarInt(&buffer, term->token_attribute);
-           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + 2*sizeof(char));
            strcpy(code,"PUSHS ");
            strcat(code,buffer);
+            strcat(code, "\n");
            break;
         case TYPE_INT_EXPO:
         case TYPE_FLOAT:
         case TYPE_FLOAT_EXPO:
            getVarFloat(&buffer, term->token_attribute);
-           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + 2*sizeof(char));
            strcpy(code,"PUSHS ");
            strcat(code,buffer);
+            strcat(code, "\n");
            break;
         case TYPE_NIL:
-           code = gb_malloc(strlen("PUSHS nil@nil") + sizeof(char));
+           code = gb_malloc(strlen("PUSHS nil@nil") + 2*sizeof(char));
            strcpy(code,"PUSHS nil@nil");
+            strcat(code, "\n");
            break;
         case TYPE_QUOT:
         case TYPE_QUOT_EMPTY:
@@ -775,9 +779,10 @@ void generate_id(TEvalStack *t,tDLList *l, htab_t *h)
                getVarString(&buffer, term->token_attribute);
            else
                getVarString(&buffer, "");
-           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + sizeof(char));
+           code = gb_malloc(strlen("PUSHS ") + strlen(buffer) + 2*sizeof(char));
            strcpy(code,"PUSHS ");
            strcat(code, buffer);
+            strcat(code, "\n");
            break;
         default:
            gb_exit_process(3);

@@ -55,7 +55,7 @@ typedef struct local_table_object{
 
 void htab_setup();
 
-htab_t* htab_return_pointer();
+TGLOBTab* htab_return_pointer();
 
 TGLOBTab* htab_def_func(char* key); 
 
@@ -76,6 +76,8 @@ void htab_check_param(char *key);
 void global_def(const char* key, void* object);
 
 void check_defined();
+
+bool check_id(char *key);
 
 /**
  * @brief Hashovacia funkcia

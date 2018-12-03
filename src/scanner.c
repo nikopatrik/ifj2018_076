@@ -115,7 +115,7 @@ int getNextToken(char **buffer)
 							state = STATE_ID;
                         }
                         else
-                            return TYPE_ERROR;
+                            gb_exit_process(1);
                         break;
                 }
             break;
@@ -124,7 +124,7 @@ int getNextToken(char **buffer)
                 while((c=fgetc(f)) != '"'){
 					//	If there is no second quote, end at EOF with error
 					if(c == EOF)
-						return TYPE_ERROR;
+						gb_exit_process(1);
 					//	'\"' does not end string
 					else if(c == '\\'){
 						c = fgetc(f);
@@ -195,7 +195,7 @@ int getNextToken(char **buffer)
 										addChar(buffer, char_escape, length++);
 								}else{
 									ungetc(c, f);
-									return TYPE_ERROR;
+									gb_exit_process(1);
 								}
 								continue;
 							//	If char after '\' is something else, skip '\' and save only next char
@@ -249,7 +249,7 @@ int getNextToken(char **buffer)
 					return TYPE_NEG_EQUAL;
 				}else{
 					ungetc(c, f);
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				}
 
 
@@ -283,7 +283,7 @@ int getNextToken(char **buffer)
                     addChar(buffer,c,length);
                     state = STATE_INT_EXPO;
                 } else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -303,7 +303,7 @@ int getNextToken(char **buffer)
 				if(isdigit(c = fgetc(f)))
 					state = STATE_FLOAT;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -335,7 +335,7 @@ int getNextToken(char **buffer)
                     state = STATE_FLOAT_EXPO_PLUS;
                 }else{
 	                ungetc(c,f);
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				}
 				break;
 
@@ -346,7 +346,7 @@ int getNextToken(char **buffer)
 					addChar(buffer, c , length);
 					state = STATE_FLOAT_EXPO;
 				}else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -425,7 +425,7 @@ int getNextToken(char **buffer)
 				if(c == 'b')
 					state = STATE_BCOM_B;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -433,7 +433,7 @@ int getNextToken(char **buffer)
 				if(c == 'e')
 					state = STATE_BCOM_E;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -441,7 +441,7 @@ int getNextToken(char **buffer)
 				if(c == 'g')
 					state = STATE_BCOM_G;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -449,7 +449,7 @@ int getNextToken(char **buffer)
 				if(c == 'i')
 					state = STATE_BCOM_I;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -457,7 +457,7 @@ int getNextToken(char **buffer)
 				if(c == 'n')
 					state = STATE_BCOM_N;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -465,7 +465,7 @@ int getNextToken(char **buffer)
 				if(isspace(c))
 					state = STATE_BCOM_COM;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
@@ -515,7 +515,7 @@ int getNextToken(char **buffer)
 				if(isspace(c))
 					state = STATE_BCOM_COM_2;
 				else
-					return TYPE_ERROR;
+					gb_exit_process(1);
 				break;
 
 
