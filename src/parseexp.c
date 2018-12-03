@@ -238,6 +238,8 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
@@ -310,6 +312,8 @@ void generate_subtract(tDLList *l, unsigned var_number, unsigned label_number)
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
@@ -372,6 +376,8 @@ void generate_multiply(tDLList *l, unsigned var_number, unsigned label_number)
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
@@ -433,6 +439,8 @@ void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
@@ -509,6 +517,8 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
@@ -591,6 +601,8 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
             "DEFVAR LF@prec$notype$%d$type\n",
             var_number,var_number+1,var_number+2,
             var_number,var_number+1);
+    DLInsertLast(l,code);
+    gb_free(code);
     fillString(&code,
             "POPS LF@prec$notype$%d\n"
             "POPS LF@prec$notype$%d\n"
