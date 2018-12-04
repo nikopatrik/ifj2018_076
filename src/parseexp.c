@@ -1,3 +1,13 @@
+/** parseexp.c
+* This file holds functions and structures for precedence (bottom-up) analysis
+* a.k.a expression parsing.
+* Author: Nikolas Patrik xpatri00
+        * Collaborators:
+*      Peter Hornak   xhorna14
+        *      Matej Jancek   xjance00
+*      Robert Hubinak xhubin03
+*
+*/
 #include <string.h>
 #include <stdbool.h>
 
@@ -109,11 +119,14 @@ bool es_is_empty(TEvalStack *t)
 bool es_endcondition(TEvalStack *t,tokenType end, char* attribute,
         tokenType got, char* gottenAttr)
 {
+    /*
+     * Checking if end conditon of precedence analysis is true
+     */
     bool c_flag = false;
     if(end == got){
         if( attribute == NULL || gottenAttr == NULL){
             if(attribute == gottenAttr)
-                c_flag = true;
+                c_flag = true; // We had found end token
             else
                 return false;
         }
@@ -128,7 +141,7 @@ bool es_endcondition(TEvalStack *t,tokenType end, char* attribute,
     
     if(c_flag && t->stack_top->prev->info == '$' &&
             t->stack_top->info != 0)
-        return true;
+        return true; // We had found end token and stack contains only one nonterminal and end token
     else
         return false;
 }
@@ -136,17 +149,22 @@ bool es_endcondition(TEvalStack *t,tokenType end, char* attribute,
 
 int get_table_index(tokenType type)
 {
+    /**
+     * This function maps all the token types into precedence table,
+     * and -1 means BAD_MAPPING
+     */
     int token_mapping_to_table[] = {0,1,2,3,-1,10,8,6,9,7,11,4,5,
         -1,12,12,12,12,12,12,12,-1,-1,-1,-1,-1,-1,12};
     return token_mapping_to_table[type];
 }
 
-#define END_EXP_MAPPING 13 //because 13 is index to precedence table
+#define END_EXP_MAPPING 13 //because 13 is index to end character in precedence table
 
 
 void rule_operators(TEvalStack *t,tDLList *l,htab_t *h);
 void rule_brackets(TEvalStack *t);
 void rule_term_to_noterm(TEvalStack *t,tDLList *l, htab_t *h);
+
 
 bool expression_parse(tokenType end, char* end_token_attribute, htab_t *symtab, 
         tDLList *l_main)
@@ -249,6 +267,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
+    /* Type control in ifjcode18 */
     fillString(&code,
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
             "JUMPIFEQ $$error$types$%d LF@prec$notype$%d$type string@bool\n"
@@ -265,6 +284,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             label_number,var_number);
     DLInsertLast(l,code);
     gb_free(code);
+    /* Implicit conversions */
     fillString(&code,
             "LABEL $$equal$int$%d\n"
             "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
@@ -282,6 +302,7 @@ void generate_add(tDLList *l,unsigned var_number, unsigned label_number)
             label_number,var_number);
     DLInsertLast(l,code);
     gb_free(code);
+    /* Adding or concatenation */
     fillString(&code,
             "LABEL $$additions$%d\n"
             "ADD LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
@@ -481,6 +502,7 @@ void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
             var_number+1,var_number+1,label_number);
     DLInsertLast(l,code);
     gb_free(code);
+    /* IFJcode18 exit status 9 when dividing with zero */
     fillString(&code,
             "LABEL $$equal$types$%d\n"
             "JUMPIFEQ $$equal$types$int$%d LF@prec$notype$%d$type string@int\n"
@@ -559,7 +581,7 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
             label_number,var_number+2);
     DLInsertLast(l,code);
     gb_free(code);
-    if(e == TYPE_NEG_EQUAL){
+    if(e == TYPE_NEG_EQUAL){ // if not equal operator '!='
         fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d\n",
                 var_number+2,var_number+2);
         DLInsertLast(l,code);
@@ -573,7 +595,7 @@ void generate_equality(tDLList *l,unsigned var_number, unsigned label_number,tok
             var_number);
     DLInsertLast(l,code);
     gb_free(code);
-    if(e == TYPE_NEG_EQUAL){
+    if(e == TYPE_NEG_EQUAL){ // if not equal operator add this negation
         fillString(&code,"NOT LF@prec$notype$%d LF@prec$notype$%d\n",
                 var_number+2,var_number+2);
         DLInsertLast(l,code);
@@ -612,7 +634,7 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
             var_number+1,var_number+1);
     DLInsertLast(l,code);
     gb_free(code);
-    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
+    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){ // when it's equal comparision we need new variable
         fillString(&code,"DEFVAR LF@prec$notype$%d\n",var_number+3);
         DLInsertLast(l,code);
         gb_free(code);
@@ -646,20 +668,20 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
             label_number,label_number);
     DLInsertLast(l,code);
     gb_free(code);
-    if(e == TYPE_LESS || e == TYPE_LESS_EQUAL){
+    if(e == TYPE_LESS || e == TYPE_LESS_EQUAL){ // Make instruction comparsion less
         fillString(&code,"LT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+2,var_number+1,var_number);  
         DLInsertLast(l,code);
         gb_free(code);
     }
-    else if(e == TYPE_GREAT || e == TYPE_GREAT_EQUAL){
+    else if(e == TYPE_GREAT || e == TYPE_GREAT_EQUAL){ // great '<'
         fillString(&code,"GT LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+2,var_number+1,var_number);  
         DLInsertLast(l,code);
         gb_free(code);
     }
 
-    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){
+    if(e == TYPE_GREAT_EQUAL || e == TYPE_LESS_EQUAL){ // check if they are equal
         fillString(&code,"EQ LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n"
                          "OR LF@prec$notype$%d LF@prec$notype$%d LF@prec$notype$%d\n",
               var_number+3,var_number+1,var_number,var_number+2,
@@ -683,11 +705,11 @@ void generate_comparsion(tDLList *l,unsigned var_number, unsigned label_number,t
 void generate_operation(TEvalStack *t,tDLList *l,htab_t* h)
 {
     static htab_t *table = NULL;
-    static unsigned var_number= 0;
-    static unsigned label_number=0;
+    static unsigned var_number= 0; //unique variable number
+    static unsigned label_number=0;//unique label number
 
-    if(h != table){
-        var_number= 0;
+    if(h != table){ // When local symtable changes, local frame changes as well.
+        var_number= 0; //so we start counting variables from beggining
         table = h;
     }
 
@@ -761,7 +783,7 @@ void generate_id(TEvalStack *t,tDLList *l, htab_t *h)
    switch(term->token){
        case TYPE_ID:
            id = htab_find(h, term->token_attribute);
-           if(id == NULL)
+           if(id == NULL) //id was not defined
                gb_exit_process(3);
            else if(!((TLOCTab*)(id->object))->initialized) gb_exit_process(3);
            else {
