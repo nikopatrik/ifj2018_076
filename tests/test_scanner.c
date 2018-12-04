@@ -8,14 +8,14 @@ int main()
 
 	myQueueInit();	
 	
-	while(i!=TYPE_EOF){
+	while(1){
 		i=getNextToken(&buffer);
 
 		printf("TYPE : %d\n",i);
 		if(buffer)
 			printf("BUFFER %s\n",buffer );
 	}
-
+/*
     ungetToken(i, buffer);
     i= getNextToken(&buffer);
 
@@ -24,7 +24,7 @@ int main()
         printf("BUFFER %s\n",buffer );
 	}
 
-
+*/
 	myQueueFree();
     printf("%d\n",c );
 

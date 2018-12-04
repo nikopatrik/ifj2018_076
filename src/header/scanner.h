@@ -44,31 +44,31 @@ typedef enum tokenType{
     TYPE_MINUS,         //  1	-
     TYPE_MULT,          //  2	*
     TYPE_DIV,           //  3	/
-    TYPE_ASSIGN,        //  3	=
-    TYPE_EQUAL,         //  4	==
-    TYPE_GREAT,         //  5	>
-    TYPE_LESS,          //  6	<
+    TYPE_ASSIGN,        //  4	=
+    TYPE_EQUAL,         //  5	==
+    TYPE_GREAT,         //  6	>
+    TYPE_LESS,          //  7	<
     // TYPE_NEG,            !
-    TYPE_GREAT_EQUAL,   //  7	>=
-    TYPE_LESS_EQUAL,    //  8	<=
-    TYPE_NEG_EQUAL,     //  9	!=
-    TYPE_L_BRE,         //  10	(
-    TYPE_R_BRE,         //  11	)
-    TYPE_COMMA,         //  12	,
-    TYPE_QUOT,          //  13	"	Return string between quotes in 'buffer'
-    TYPE_QUOT_EMPTY,    //  14	""
-    TYPE_INT,			//  15	Integer
-	TYPE_INT_EXPO,		//	16	Integer with exponential
-    TYPE_FLOAT,			//	17	Float (decimal number)
-	TYPE_FLOAT_EXPO,	//	18	Float with exponential (decimal number)
-	TYPE_ID,			//	19	ID of variable or function
-	TYPE_FUNC_ID,		//	20	ID of function ( ? or ! at end )
-    TYPE_KEYWORD,       //  21	Keyword
-    TYPE_PRE_FUNC,      //  22	Predefined function
-    TYPE_EOL,           //  23	End of line
-    TYPE_EOF,			// 	24	End of file
-	TYPE_ERROR,			//	25	Some Error
-    TYPE_NIL            //  26	nil
+    TYPE_GREAT_EQUAL,   //  8	>=
+    TYPE_LESS_EQUAL,    //  9	<=
+    TYPE_NEG_EQUAL,     //  10	!=
+    TYPE_L_BRE,         //  11	(
+    TYPE_R_BRE,         //  12	)
+    TYPE_COMMA,         //  13	,
+    TYPE_QUOT,          //  14	"	Return string between quotes in 'buffer'
+    TYPE_QUOT_EMPTY,    //  15	""
+    TYPE_INT,			//  16	Integer
+	TYPE_INT_EXPO,		//	17	Integer with exponential
+    TYPE_FLOAT,			//	18	Float (decimal number)
+	TYPE_FLOAT_EXPO,	//	19	Float with exponential (decimal number)
+	TYPE_ID,			//	20	ID of variable or function
+	TYPE_FUNC_ID,		//	21	ID of function ( ? or ! at end )
+    TYPE_KEYWORD,       //  22	Keyword
+    TYPE_PRE_FUNC,      //  23	Predefined function
+    TYPE_EOL,           //  24	End of line
+    TYPE_EOF,			// 	25	End of file
+	TYPE_ERROR,			//	26	Some Error
+    TYPE_NIL            //  27	nil
 
 } tokenType;
 

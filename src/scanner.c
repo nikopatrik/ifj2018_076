@@ -53,11 +53,14 @@ int getNextToken(char **buffer)
 
 	automataState state = STATE_BEGIN;
     char c;
+	//	length is 1 because at index (length - 1) is stored char
+	//	and at index length is stored \0
     length = 1;
     c=fgetc(f);
     while(1){
         switch (state) {
             case STATE_BEGIN:
+				//	Skip whitespaces, but not newline because we need to return every newline
                 while(isspace(c) && c != '\n'){
                     c=fgetc(f);
                 }
@@ -115,6 +118,7 @@ int getNextToken(char **buffer)
 							state = STATE_ID;
                         }
                         else
+							// This will free every allocation and exit program with error code '1'
                             gb_exit_process(1);
                         break;
                 }
@@ -172,7 +176,7 @@ int getNextToken(char **buffer)
 								continue;
 							// hex
 							case 'x' :
-								//	Check if char == {0-9} || {A-F}
+								//	Check if char == [0-9] || [A-F]
 								if(((c = fgetc(f)) >= 48 && c <= 57) || (c >= 65 && c <= 70)){
 									char hex_escape[3];		// hexadecimal number
 									int char_escape;		// decimal value of char
@@ -219,8 +223,10 @@ int getNextToken(char **buffer)
 
 			case STATE_ASSIGN :
 				if((c = fgetc(f))== '='){
+					// ==
 					return TYPE_EQUAL;
 				}else{
+					// =
 					ungetc(c, f);
 					return TYPE_ASSIGN;
 				}
@@ -228,8 +234,10 @@ int getNextToken(char **buffer)
 
 			case STATE_LESS :
 				if((c = fgetc(f)) == '='){
+					//	<=
 					return TYPE_LESS_EQUAL;
 				}else{
+					//	<
 					ungetc(c, f);
 					return TYPE_LESS;
 				}
@@ -237,8 +245,10 @@ int getNextToken(char **buffer)
 
 			case STATE_GREAT :
 				if((c = fgetc(f)) == '='){
+					//	>=
 					return TYPE_GREAT_EQUAL;
 				}else{
+					//	>
 					ungetc(c, f);
 					return TYPE_GREAT;
 				}
@@ -246,23 +256,30 @@ int getNextToken(char **buffer)
 
 			case STATE_NEG :
 				if((c = fgetc(f)) == '='){
+					//	!=
 					return TYPE_NEG_EQUAL;
 				}else{
 					ungetc(c, f);
 					gb_exit_process(1);
 				}
+				break;
 
 
 			case STATE_INT:
                 firstChar(buffer,c);
+				//	infinity while, because we do not know how
+				//	long we will be reading sequence of number
                 while(1){
                     if(!isdigit(c = fgetc(f))){
+						//	Except for digits there can be only dot or exponent, nothing else
                         if(c == '.'){
                             length ++;
                             addChar(buffer,c,length);
                             state = STATE_INT_DOT;
                             break;
 						}else if(c == 'e' || c == 'E'){
+                            length ++;
+                            addChar(buffer,c,length);
 							state = STATE_INT_E;
 							break;
 						}else{
@@ -278,16 +295,45 @@ int getNextToken(char **buffer)
 
 
 			case STATE_INT_E :
-                if((c = fgetc(f)) == '+' || c == '-' || isdigit(c)){
+				//	After exponent we can have +/- or number
+                if((c = fgetc(f)) == '+' || c == '-'){
                     length ++;
                     addChar(buffer,c,length);
-                    state = STATE_INT_EXPO;
-                } else
+					if(isdigit(c = fgetc(f))){
+						length ++;
+						addChar(buffer,c,length);
+						state = STATE_INT_EXPO;
+						break;
+					}else{
+						ungetc(c, f);
+						gb_exit_process(1);
+					}
+                }else if(isdigit(c)){
+                    length ++;
+                    addChar(buffer,c,length);
+					//	Reading unless there is no number
+					while(1){
+						if(isdigit(c = fgetc(f))){
+							length ++;
+							addChar(buffer,c,length);
+						}else{
+							//	When there is no number, pass it to another state,
+							//	where it return type of integer with exponent
+							ungetc(c, f);
+							state = STATE_INT_EXPO;
+							break;
+						}
+					}
+				}else{
+					//	When we have after exponent something different as +/- or number
+					ungetc(c, f);
 					gb_exit_process(1);
-				break;
+				}
 
 
 			case STATE_INT_EXPO :
+				//	Store numbers unless there is no number,
+				//	after it will return integer with exponent
 				while(1){
 					if(isdigit(c = fgetc(f))){
 						length++;
@@ -301,9 +347,12 @@ int getNextToken(char **buffer)
 
 
 			case STATE_INT_DOT :
-				if(isdigit(c = fgetc(f)))
+				if(isdigit(c = fgetc(f))){
+					length++;
+					addChar(buffer, c, length);
 					state = STATE_FLOAT;
-				else
+				}else
+					//	After dot can be only number, no exponent or plus/minus
 					gb_exit_process(1);
 				break;
 
@@ -311,18 +360,19 @@ int getNextToken(char **buffer)
             case STATE_FLOAT:
 				while(1){
                     if(!isdigit(c = fgetc(f))){
+						//	If the is not number, there can be only 'e' or 'E' as exponent
                         if(c == 'e' || c == 'E'){
                             length ++;
                             addChar(buffer,c,length);
                             state = STATE_FLOAT_E;
                             break;
                         }else{
-                            c=fgetc(f);
+							//	In 'c' is not number or 'e', 'E' so it is end of number
                             ungetc(c,f);
                             return TYPE_FLOAT;
-                            break;
                         }
                     }else{
+						//	There is number, so we store it in buffer
                         length ++;
                         addChar(buffer,c,length);
                     }
@@ -331,11 +381,16 @@ int getNextToken(char **buffer)
 
 
             case STATE_FLOAT_E:
-                if((c = fgetc(f)) == '+' || c == '-' || isdigit(c)){
+				//	After exponent we can have only +/- or number
+                if((c = fgetc(f)) == '+' || c == '-'){
                     length ++;
                     addChar(buffer,c,length);
                     state = STATE_FLOAT_EXPO_PLUS;
-                }else{
+                }else if(isdigit(c)){
+                    length ++;
+                    addChar(buffer,c,length);
+					state = STATE_FLOAT_EXPO;
+				}else{
 	                ungetc(c,f);
 					gb_exit_process(1);
 				}
@@ -343,6 +398,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_FLOAT_EXPO_PLUS :
+				//	After +/- we have to have at least one number
 				if(isdigit(c = fgetc(f))){
 					length ++;
 					addChar(buffer, c , length);
@@ -369,14 +425,17 @@ int getNextToken(char **buffer)
                 firstChar(buffer,c);
 				while(1){
 					c = fgetc(f);
+					//	In ID we can have any alpha or number or '_'
 					if(isalnum(c) || c == '_'){
 						length++;
 						addChar(buffer, c, length);
+					//	If there is '?' or '!' at end, it is ID of function
 					}else if(c == '?' || c == '!'){
 						length++;
 						addChar(buffer, c, length);
 						return TYPE_FUNC_ID;
 					}else{
+					//	Check if stored ID is not keyword, nil or predefined function
 						ungetc(c, f);
                         if( strcmp(*buffer,"def")   == 0 ||
                             strcmp(*buffer,"do")    == 0 ||
@@ -415,11 +474,13 @@ int getNextToken(char **buffer)
 				}
 				break;
 
-
+			//	In block comment we are checking every char in '=begin'
 			case STATE_BCOM :
 				if(c == '=')
 					state = STATE_BCOM_EQUALS;
 				else{
+				//	Return EOL, if there is no '=' at beggining of line,
+				//	because we get here by reading newline
                     return TYPE_EOL;
 				}
 				break;
@@ -474,6 +535,8 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM :
+				//	Read and forget char unless there is newline,
+				//	because after newline can be end of block comment
 				while(1){
 					if((c = fgetc(f)) == 10){
 						state = STATE_BCOM_COM_EOL;
@@ -516,6 +579,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_D :
+				// After '=end' have to be at least one whitespace
 				if(isspace(c))
 					state = STATE_BCOM_COM_2;
 				else
@@ -524,6 +588,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_2 :
+				//	Still on ending line is block of comment
 				while(1){
 					if((c = fgetc(f)) == 10){
 						state = STATE_BEGIN;
