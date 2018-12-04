@@ -509,7 +509,7 @@ void printMainEnd()
     fprintf(stdout, "CLEARS\nPOPFRAME\n");
 }
 
-void printIf(tDLList *L){                 
+void printIf(tDLList *L){
     char *buffer = NULL;
     id_if++;
     SPush(&stack,id_if);

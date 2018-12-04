@@ -1,116 +1,40 @@
-
-/* c206.c **********************************************************}
-{* Téma: Dvousměrně vázaný lineární seznam
-**
-**                   Návrh a referenční implementace: Bohuslav Křena, říjen 2001
-**                            Přepracované do jazyka C: Martin Tuček, říjen 2004
-**                                            Úpravy: Kamil Jeřábek, září 2018
-**
-** Implementujte abstraktní datový typ dvousměrně vázaný lineární seznam.
-** Užitečným obsahem prvku seznamu je hodnota typu int.
-** Seznam bude jako datová abstrakce reprezentován proměnnou
-** typu tDLList (DL znamená Double-Linked a slouží pro odlišení
-** jmen konstant, typů a funkcí od jmen u jednosměrně vázaného lineárního
-** seznamu). Definici konstant a typů naleznete v hlavičkovém souboru c206.h.
-**
-** Vaším úkolem je implementovat následující operace, které spolu
-** s výše uvedenou datovou částí abstrakce tvoří abstraktní datový typ
-** obousměrně vázaný lineární seznam:
-**
-**      DLInitList ...... inicializace seznamu před prvním použitím,
-**      DLDisposeList ... zrušení všech prvků seznamu,
-**      DLInsertFirst ... vložení prvku na začátek seznamu,
-**      DLInsertLast .... vložení prvku na konec seznamu,
-**      DLFirst ......... nastavení aktivity na první prvek,
-**      DLLast .......... nastavení aktivity na poslední prvek,
-**      DLCopyFirst ..... vrací hodnotu prvního prvku,
-**      DLCopyLast ...... vrací hodnotu posledního prvku,
-**      DLDeleteFirst ... zruší první prvek seznamu,
-**      DLDeleteLast .... zruší poslední prvek seznamu,
-**      DLPostDelete .... ruší prvek za aktivním prvkem,
-**      DLPreDelete ..... ruší prvek před aktivním prvkem,
-**      DLPostInsert .... vloží nový prvek za aktivní prvek seznamu,
-**      DLPreInsert ..... vloží nový prvek před aktivní prvek seznamu,
-**      DLCopy .......... vrací hodnotu aktivního prvku,
-**      DLActualize ..... přepíše obsah aktivního prvku novou hodnotou,
-**      DLSucc .......... posune aktivitu na další prvek seznamu,
-**      DLPred .......... posune aktivitu na předchozí prvek seznamu,
-**      DLActive ........ zjišťuje aktivitu seznamu.
-**
-** Při implementaci jednotlivých funkcí nevolejte žádnou z funkcí
-** implementovaných v rámci tohoto příkladu, není-li u funkce
-** explicitně uvedeno něco jiného.
-**
-** Nemusíte ošetřovat situaci, kdy místo legálního ukazatele na seznam
-** předá někdo jako parametr hodnotu NULL.
-**
-** Svou implementaci vhodně komentujte!
-**
-** Terminologická poznámka: Jazyk C nepoužívá pojem procedura.
-** Proto zde používáme pojem funkce i pro operace, které by byly
-** v algoritmickém jazyce Pascalovského typu implemenovány jako
-** procedury (v jazyce C procedurám odpovídají funkce vracející typ void).
-**/
-
 #include "header/instrlist.h"
 
-int errflg;
-int solved;
-
+/* Vypíše chybu pri nesprávnej práci so zoznamom */
 void DLError() {
-/*
-** Vytiskne upozornění na to, že došlo k chybě.
-** Tato funkce bude volána z některých dále implementovaných operací.
-**/
     printf ("*ERROR* The program has performed an illegal operation.\n");
-    errflg = TRUE;             /* globální proměnná -- příznak ošetření chyby */
     return;
 }
 
 void DLInitList (tDLList *L) {
-/*
-** Provede inicializaci seznamu L před jeho prvním použitím (tzn. žádná
-** z následujících funkcí nebude volána nad neinicializovaným seznamem).
-** Tato inicializace se nikdy nebude provádět nad již inicializovaným
-** seznamem, a proto tuto možnost neošetřujte. Vždy předpokládejte,
-** že neinicializované proměnné mají nedefinovanou hodnotu.
-**/
-
-  //Nastavi ukazatele na NULL
-
-  L->First = NULL;
-  L->Act = NULL;
-  L->Last = NULL;
-
+    L->First = NULL;
+    L->Act = NULL;
+    L->Last = NULL;
 }
 
 void DLDisposeList (tDLList *L) {
-/*
-** Zruší všechny prvky seznamu L a uvede seznam do stavu, v jakém
-** se nacházel po inicializaci. Rušené prvky seznamu budou korektně
-** uvolněny voláním operace gb_free.
-**/
-
-  //Posuva First a cez Act uvolnuje paměť
-  while(L->First!= NULL){
-      L->Act = L->First;
-      L->First = L->First->rptr;
-      gb_free(L->Act->instruction);
-      L->Act->instruction = NULL;
-      gb_free(L->Act);
+// Posuva First a cez Act uvolnuje paměť
+    while(L->First!= NULL){
+        L->Act = L->First;
+        L->First = L->First->rptr;
+        gb_free(L->Act->instruction);
+        L->Act->instruction = NULL;
+        gb_free(L->Act);
     }
 
+// Nastaví ukazatele na stav po inicializácii
     L->Act = NULL;
     L->Last = NULL;
 }
 
 void DLPostInsertList (tDLList *L, tDLList *M)
 {
+    //Ak sú listy neaktívne alebo L neni akt. volá DLError
     if(!L || !M || !L->Act ){
         DLError();
         return;
     }
-
+    //Ak je L->Act posledný nastaví L->Last na M->Last
     if(L->Act == L->Last){
         L->Last = M->Last;
         M->First->lptr = L->Act;
@@ -126,11 +50,12 @@ void DLPostInsertList (tDLList *L, tDLList *M)
 
 void DLPreInsertList (tDLList *L, tDLList *M)
 {
+    //Ak sú listy neaktívne alebo L neni akt. volá DLError
     if(!L || !M || !L->Act ){
         DLError();
         return;
     }
-
+    //Ak je L->Act prvý nastaví L->First na M->First
     if(L->Act == L->First){
         L->First = M->First;
         L->Act->lptr = M->Last;
@@ -146,17 +71,11 @@ void DLPreInsertList (tDLList *L, tDLList *M)
 
 
 void DLInsertFirst (tDLList *L, char *instruction) {
-/*
-** Vloží nový prvek na začátek seznamu L.
-** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
-** volá funkci DLError().
-**/
-
-  //Naalokujem prvok a nastavim hodnoty
+  // Naalokujem prvok a nastavim hodnoty
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
-
+  // Pri chybe alokácie ukončí program s error kódom
   if(New == NULL){
-      DLError();
+      gb_exit_process(99);
       return;
   }
 
@@ -179,12 +98,6 @@ void DLInsertFirst (tDLList *L, char *instruction) {
 }
 
 void DLInsertLast(tDLList *L, char *instruction) {
-/*
-** Vloží nový prvek na konec seznamu L (symetrická operace k DLInsertFirst).
-** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
-** volá funkci DLError().
-**/
-
   //Naalokujem novy prcok a nastavim hodnoty
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
@@ -211,20 +124,10 @@ void DLInsertLast(tDLList *L, char *instruction) {
 }
 
 void DLFirst (tDLList *L) {
-/*
-** Nastaví aktivitu na první prvek seznamu L.
-** Funkci implementujte jako jediný příkaz (nepočítáme-li return),
-** aniž byste testovali, zda je seznam L prázdný.
-**/
   L->Act = L->First;
 }
 
 void DLLast (tDLList *L) {
-/*
-** Nastaví aktivitu na poslední prvek seznamu L.
-** Funkci implementujte jako jediný příkaz (nepočítáme-li return),
-** aniž byste testovali, zda je seznam L prázdný.
-**/
   L->Act = L->Last;
 }
 
