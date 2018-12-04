@@ -2,7 +2,6 @@ ifj18
 *.o
 ic18int
 *.code
-ifjcode18/
 .idea/*
 cmake-build-debug/
 CMakeLists.txt
