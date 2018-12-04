@@ -1,0 +1,16 @@
+print "Zadajte cislo x a y na vypocitanie x^y\n"
+x = inputf
+y = inputi
+
+def power(x,y)
+mocnina = 1
+i = 0
+while i<y do
+    mocnina = mocnina * x
+end
+end
+
+vysl = power x,y
+
+print "Mocnina cisla ",x,"^",y,"sa rovna:",vysl,"\n"
+
