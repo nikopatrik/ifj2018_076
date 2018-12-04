@@ -58,7 +58,7 @@ bool stat(tokenType* token, char** buffer)
         TGLOBTab *htab_temp = htab_return_pointer();
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
             if(def_count != 0)
-                DLPostInsert(&L, "POPS LF@retval");
+                DLPostInsert(&L, "POPS LF@retval\n");
         }
     }
 
@@ -92,7 +92,7 @@ bool stat(tokenType* token, char** buffer)
             param_count = 0;
             if(one_more_global_id != 0)        //Ak je to input or read nepriraduj
                 if(def_count != 0){                         // Vo funkcii prirad to retval nil
-                    DLPostInsert(&L, "MOVE LF@$retval nil@nil");
+                    DLPostInsert(&L, "MOVE LF@$retval nil@nil\n");
                     DLSucc(&L);
                 }
                 one_more_global_id--;
@@ -266,7 +266,7 @@ bool id_item(tokenType* token, char** buffer)
         TGLOBTab *htab_temp = htab_return_pointer();
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
             if(def_count != 0)
-                DLPostInsert(&L, "POPS LF@retval");
+                DLPostInsert(&L, "POPS LF@retval\n");
         }
             
     }
@@ -326,7 +326,7 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
             param_count = 0;
             if(one_more_global_id != 0){        //Ak je to input or read nepriraduj
                 if(def_count != 0){                         // Vo funkcii prirad to retval nil
-                    DLPostInsert(&L, "MOVE LF@$retval nil@nil");
+                    DLPostInsert(&L, "MOVE LF@$retval nil@nil\n");
                     DLSucc(&L);
                 }
                 one_more_global_id--;

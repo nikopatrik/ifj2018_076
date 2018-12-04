@@ -52,7 +52,7 @@ void convertCharToString(char *array, char dumbchar)
 
 void convertToString(char **buffer)
 {
-    int count_of_replaceable_char;
+    int count_of_replaceable_char=0;
     for(unsigned i=0; i< strlen(*buffer);i++)
         if((*buffer)[i] < 33 || ((*buffer)[i] == 35) || (*buffer)[i] == 92)
             count_of_replaceable_char++;
@@ -68,6 +68,7 @@ void convertToString(char **buffer)
             j++;
         }
     }
+    formatedstring[j]='\0';
     unsigned length= strlen(formatedstring)+1;
     *buffer = realloc(*buffer,length);
     strcpy(*buffer,formatedstring);
@@ -509,7 +510,7 @@ void printMainEnd()
     fprintf(stdout, "CLEARS\nPOPFRAME\n");
 }
 
-void printIf(tDLList *L){                 
+void printIf(tDLList *L){
     char *buffer = NULL;
     id_if++;
     SPush(&stack,id_if);
@@ -606,10 +607,12 @@ void printWhile(tDLList *L){
 void printEndwhile(tDLList *L){
     char *buffer = NULL;
     int id_print = STopPop(&stack);
-    fillString(&buffer, "JUMP start$while%d\n"
-                        "LABEL $endwhile%d\n"
-                        , id_print, id_print);
+    fillString(&buffer, "JUMP start$while%d\n", id_print);
+    DLPostInsert(L, buffer);
+    DLSucc(L);
+    free(buffer);
 
+    fillString(&buffer, "LABEL $endwhile%d\n", id_print);
     DLPostInsert(L, buffer);
     DLSucc(L);
     free(buffer);
