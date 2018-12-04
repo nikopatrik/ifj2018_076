@@ -52,7 +52,7 @@ void convertCharToString(char *array, char dumbchar)
 
 void convertToString(char **buffer)
 {
-    int count_of_replaceable_char;
+    int count_of_replaceable_char=0;
     for(unsigned i=0; i< strlen(*buffer);i++)
         if((*buffer)[i] < 33 || ((*buffer)[i] == 35) || (*buffer)[i] == 92)
             count_of_replaceable_char++;
@@ -68,6 +68,7 @@ void convertToString(char **buffer)
             j++;
         }
     }
+    formatedstring[j]='\0';
     unsigned length= strlen(formatedstring)+1;
     *buffer = realloc(*buffer,length);
     strcpy(*buffer,formatedstring);
