@@ -73,7 +73,7 @@ void DLPreInsertList (tDLList *L, tDLList *M)
 void DLInsertFirst (tDLList *L, char *instruction) {
   // Naalokujem prvok a nastavim hodnoty
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
-  // Pri chybe alokácie ukončí program s error kódom
+  // Pri chybe alokácie ukončí program s error kódom 99
   if(New == NULL){
       gb_exit_process(99);
       return;
@@ -81,7 +81,7 @@ void DLInsertFirst (tDLList *L, char *instruction) {
 
   New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
-      DLError();
+      gb_exit_process(99);
       return;
   }
 
@@ -100,14 +100,15 @@ void DLInsertFirst (tDLList *L, char *instruction) {
 void DLInsertLast(tDLList *L, char *instruction) {
   //Naalokujem novy prcok a nastavim hodnoty
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
+  // Pri chybe alokácie ukončí program s error kódom 99
   if(New == NULL){
-      DLError();
+      gb_exit_process(99);
       return;
   }
 
   New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
-      DLError();
+      gb_exit_process(99);
       return;
   }
 
@@ -132,42 +133,33 @@ void DLLast (tDLList *L) {
 }
 
 void DLCopyFirst (tDLList *L, char **val) {
-/*
-** Prostřednictvím parametru val vrátí hodnotu prvního prvku seznamu L.
-** Pokud je seznam L prázdný, volá funkci DLError().
-**/
   if(L->First == NULL){
       DLError();
       return;
   }
   else{
       *val = gb_malloc(sizeof(char)*(strlen(L->First->instruction)+1));
+      if(*val == NULL)
+          gb_exit_process(99);
       strcpy(*val,L->First->instruction);
   }
 
 }
 
 void DLCopyLast (tDLList *L, char **val) {
-/*
-** Prostřednictvím parametru val vrátí hodnotu posledního prvku seznamu L.
-** Pokud je seznam L prázdný, volá funkci DLError().
-**/
   if(L->First == NULL){
       DLError();
       return;
   }
   else{
       *val = gb_malloc(sizeof(char)*(strlen(L->Last->instruction)+1));
+      if(*val == NULL)
+          gb_exit_process(99);
       strcpy(*val,L->Last->instruction);
   }
 }
 
 void DLDeleteFirst (tDLList *L) {
-/*
-** Zruší první prvek seznamu L. Pokud byl první prvek aktivní, aktivita
-** se ztrácí. Pokud byl seznam L prázdný, nic se neděje.
-**/
-
   //Ak je zoznam prazdny nic sa nedeje
   if(L->First == NULL)
       return;
@@ -195,11 +187,6 @@ void DLDeleteFirst (tDLList *L) {
 }
 
 void DLDeleteLast (tDLList *L) {
-/*
-** Zruší poslední prvek seznamu L. Pokud byl poslední prvek aktivní,
-** aktivita seznamu se ztrácí. Pokud byl seznam L prázdný, nic se neděje.
-**/
-
   //Ak je zoznam prazdny nic sa nedeje
   if(L->First == NULL)
       return;
@@ -226,12 +213,7 @@ void DLDeleteLast (tDLList *L) {
 }
 
 void DLPostDelete (tDLList *L) {
-/*
-** Zruší prvek seznamu L za aktivním prvkem.
-** Pokud je seznam L neaktivní nebo pokud je aktivní prvek
-** posledním prvkem seznamu, nic se neděje.
-**/
-
+  //Ak nie je Act alebo je Act Last nič nerobí
   if(L->Act == NULL || L->Last == L->Act)
       return;
 
@@ -254,12 +236,7 @@ void DLPostDelete (tDLList *L) {
 }
 
 void DLPreDelete (tDLList *L) {
-/*
-** Zruší prvek před aktivním prvkem seznamu L .
-** Pokud je seznam L neaktivní nebo pokud je aktivní prvek
-** prvním prvkem seznamu, nic se neděje.
-**/
-
+  //Ak nie je Act alebo je Act Last nič nerobí
   if(L->Act == NULL || L->First == L-> Act)
       return;
 
@@ -281,25 +258,19 @@ void DLPreDelete (tDLList *L) {
 }
 
 void DLPostInsert (tDLList *L,  char *instruction) {
-/*
-** Vloží prvek za aktivní prvek seznamu L.
-** Pokud nebyl seznam L aktivní, nic se neděje.
-** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
-** volá funkci DLError().
-**/
   if(L->Act == NULL)
       return;
 
   //Vytvorenie noveho prvku
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
-      DLError();
+       gb_exit_process(99);
       return;
   }
   //Inicializujem data noveho prvku
   New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
-      DLError();
+       gb_exit_process(99);
       return;
   }
 
@@ -319,24 +290,18 @@ void DLPostInsert (tDLList *L,  char *instruction) {
 }
 
 void DLPreInsert (tDLList *L, char *instruction) {
-/*
-** Vloží prvek před aktivní prvek seznamu L.
-** Pokud nebyl seznam L aktivní, nic se neděje.
-** V případě, že není dostatek paměti pro nový prvek při operaci gb_malloc,
-** volá funkci DLError().
-**/
   if(L->Act == NULL)
       return;
   //Vytvorenie noveho prvku
   tDLElemPtr New = gb_malloc(sizeof(struct tDLElem));
   if(New == NULL){
-      DLError();
+       gb_exit_process(99);
       return;
   }
   //Inicializujem data noveho prvku
   New->instruction = gb_malloc(sizeof(char)*(strlen(instruction)+1));
   if(!New->instruction){
-      DLError();
+       gb_exit_process(99);
       return;
   }
 
@@ -356,12 +321,10 @@ void DLPreInsert (tDLList *L, char *instruction) {
 }
 
 void DLCopy (tDLList *L, char **val) {
-/*
-** Prostřednictvím parametru val vrátí hodnotu aktivního prvku seznamu L.
-** Pokud seznam L není aktivní, volá funkci DLError ().
-**/
   if(L->Act != NULL){
       *val = gb_malloc(sizeof(char)*(strlen(L->Act->instruction)+1));
+      if(*val == NULL)
+          gb_exit_process(99);
       strcpy(*val,L->Act->instruction);
   }
   else{
@@ -371,10 +334,6 @@ void DLCopy (tDLList *L, char **val) {
 }
 
 void DLActualize (tDLList *L, char  *val) {
-/*
-** Přepíše obsah aktivního prvku seznamu L.
-** Pokud seznam L není aktivní, nedělá nic.
-**/
   if(L->Act != NULL){
     L->Act->instruction = realloc(L->Act->instruction,(sizeof(char)*(strlen(val)+1)));
     strcpy(L->Act->instruction,val);
@@ -382,11 +341,6 @@ void DLActualize (tDLList *L, char  *val) {
 }
 
 void DLSucc (tDLList *L) {
-/*
-** Posune aktivitu na následující prvek seznamu L.
-** Není-li seznam aktivní, nedělá nic.
-** Všimněte si, že při aktivitě na posledním prvku se seznam stane neaktivním.
-**/
   if(L->Act != NULL){
     L->Act = L->Act->rptr;
   }
@@ -394,26 +348,17 @@ void DLSucc (tDLList *L) {
 
 
 void DLPred (tDLList *L) {
-/*
-** Posune aktivitu na předchozí prvek seznamu L.
-** Není-li seznam aktivní, nedělá nic.
-** Všimněte si, že při aktivitě na prvním prvku se seznam stane neaktivním.
-**/
   if(L->Act != NULL){
     L->Act = L->Act->lptr;
   }
 }
 
 int DLActive (tDLList *L) {
-/*
-** Je-li seznam L aktivní, vrací nenulovou hodnotu, jinak vrací 0.
-** Funkci je vhodné implementovat jedním příkazem return.
-**/
-
   return L->Act == NULL ? 0 : 1;
 }
 
 void DLPrintList (tDLList *L){
+    // Pomocny prvok pre prechazanie zoznamom
     tDLElemPtr TMP;
     TMP = L->First;
     while(TMP){
@@ -421,5 +366,3 @@ void DLPrintList (tDLList *L){
         TMP = TMP->rptr;
     }
 }
-
-/* Konec c206.c*/

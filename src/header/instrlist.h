@@ -36,11 +36,11 @@ void DLPostInsertList (tDLList *L, tDLList *M);
 void DLPreInsertList (tDLList *L, tDLList *M);
 
 /* Vloží prvok s inštrukciou na začiatok zoznamu
-** Pri chybe alokacie zoznamu alebo inštrukcie vola DLError */
+** Pri chybe alokacie zoznamu alebo inštrukcie vola gb_exit_process */
 void DLInsertFirst (tDLList *, char *);
 
 /* Vloží prvok s inštrukciou na koniec zoznamu
-** Pri chybe alokacie listu alebo inštrukcie vola DLError */
+** Pri chybe alokacie listu alebo inštrukcie vola gb_exit_process */
 void DLInsertLast(tDLList *, char *);
 
 /* Nastaví aktivitu na prvý prvok zoznamu */

@@ -2,24 +2,30 @@
 
 #include "header/generate.h"
 
-static int id_Param = 1, id_if = 0, id_defParam = 1, id_dump = 1;
+/* Staticke premenne pre indexovanie labelov a premennych */
+static int id_Param = 1;        // id volanych parametrov
+static int id_if = 0;           // id labelov a pomocnych premennych pre if a while
+static int id_defParam = 1;     // id parametov v definicii funkcie
+static int id_dump = 1;         // id pre pomocnu premennu v pripade volania inputi/f/s bez priradenia
 static int chr=0,substr=0,ord=0,length=0;
-static tStack stack;
+static tStack stack;            // stack na id pre while a if pri zanorení
 
 void myStackInit(){
     SInit(&stack);
 }
+
 void addString(char **buffer, char *add)
 {
+    // Ak je pridavany string NULL nič nerobí
     if(add){
-        if(*buffer){
+        if(*buffer){    // Ak string nie je NULL prida add nakoniec
             unsigned old = strlen(*buffer);
             unsigned new = old + strlen(add);
             *buffer = realloc(*buffer, new +1);
             strcat(*buffer,add);
             (*buffer)[new] = '\0';
         }
-        else{
+        else{           // Ak je string NULL vloží add
             unsigned size = strlen(add);
             *buffer = malloc(sizeof(char)*(size+1));
             strcpy(*buffer,add);
@@ -30,11 +36,16 @@ void addString(char **buffer, char *add)
 
 void fillString(char **buffer,char *formatted_string,...)
 {
+    // Praca s premennym poctom parametrov
     va_list l,l2;
     va_start(l,formatted_string);
     va_copy(l2,l);
+    // Zistí dlžku na alokaciu
     unsigned size = vsnprintf(NULL,0,formatted_string,l);
     *buffer = malloc(size + sizeof(char));
+    if(*buffer == NULL)
+        gb_exit_process(99);
+    // Vloží do bufferu
     vsnprintf(*buffer,size + sizeof(char),formatted_string,l2);
     va_end(l);
     va_end(l2);
@@ -53,11 +64,14 @@ void convertCharToString(char *array, char dumbchar)
 void convertToString(char **buffer)
 {
     int count_of_replaceable_char=0;
+    // Zistí počet znakov ktore treba zmeniť
     for(unsigned i=0; i< strlen(*buffer);i++)
         if((*buffer)[i] < 33 || ((*buffer)[i] == 35) || (*buffer)[i] == 92)
             count_of_replaceable_char++;
+    // Alokuje pamäť pre upraveny string
     char *formatedstring = malloc(strlen(*buffer)+count_of_replaceable_char*4 + 1);
     unsigned j=0;
+    // Do formatedstringu pridava znaky ktore sa nemenia a konvertuje menene znaky
     for(unsigned i=0; i< strlen(*buffer);i++){
         if((*buffer)[i] < 33 || ((*buffer)[i] == 35) ||(*buffer)[i] == 92){
             convertCharToString(&formatedstring[j],(*buffer)[i]);
@@ -70,6 +84,7 @@ void convertToString(char **buffer)
     }
     formatedstring[j]='\0';
     unsigned length= strlen(formatedstring)+1;
+    // Reallocne buffer a vloží sformatovany string
     *buffer = realloc(*buffer,length);
     strcpy(*buffer,formatedstring);
     free(formatedstring);
@@ -127,6 +142,8 @@ void getVarString(char **buffer,char *value)
     }
 
 }
+
+/* GENEROVACIE FUNKCIE */
 
 void printHead()
 {
