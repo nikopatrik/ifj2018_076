@@ -606,10 +606,12 @@ void printWhile(tDLList *L){
 void printEndwhile(tDLList *L){
     char *buffer = NULL;
     int id_print = STopPop(&stack);
-    fillString(&buffer, "JUMP start$while%d\n"
-                        "LABEL $endwhile%d\n"
-                        , id_print, id_print);
+    fillString(&buffer, "JUMP start$while%d\n", id_print);
+    DLPostInsert(L, buffer);
+    DLSucc(L);
+    free(buffer);
 
+    fillString(&buffer, "LABEL $endwhile%d\n", id_print);
     DLPostInsert(L, buffer);
     DLSucc(L);
     free(buffer);
