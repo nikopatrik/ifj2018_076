@@ -1,12 +1,15 @@
-/* Předmět: Algoritmy (IAL) - FIT VUT v Brně
- * Hlavičkový soubor pro c201.c (Jednosměrně vázaný lineární seznam)
- * Vytvořil: Martin Tuček, září 2005
- * Upravil: Kamil Jeřábek, září 2018
+/** garbagecollector.c
+ * This file implements memory operations which are handled in
+ * one-directional list and it releases all memory resources when program
+ * finishes.
+ * Author: Nikolas Patrik xpatri00
+ * Collaborators:
+ *      Peter Hornak   xhorna14
+ *      Matej Jancek   xjance00
+ *      Robert Hubinak xhubin03
  *
- *
- * Tento soubor, prosíme, neupravujte!
- * Please, do not modify this file!
  */
+
 
 #ifndef _GARBAGE_H_
 #define _GARBAGE_H_
@@ -39,12 +42,39 @@ typedef struct {
 
 
 /*Garbage collector Interface*/
+
+/**
+ * This function should be called beforehand each garbage collector function.
+ */
 void garbage_collector_init();
+/**
+ * This function registers newpointer to garbagecollector so it can be free at the end
+ * @param pointer Pointer to void which should be registered.
+ */
 void gb_register_pointer(void*);
+/**
+ * Same as malloc except it also register pointer which was returned by malloc.
+ * @param size Size of the memory which is going to be allocated by malloc.
+ * @return Void pointer which was returned by malloc or Null on failure.
+ */
 void* gb_malloc(size_t size);
-void* gb_realloc(void*,size_t);
+/**
+ * Same as realloc, also reregisters pointer in garbage collector if needed.
+ * @param allocated_mem Pointer which should be reallocated.
+ * @return New void pointer.
+ */
+void* gb_realloc(void* allocated_mem,size_t);
+/**
+ * Unregisters pointer from garbage collector if was registered and also frees the memory.
+ */
 void gb_free(void*);
+/**
+ * Function releases all resources allocated by garbage collector functions.
+ */
 void gb_release_resources();
+/**
+ * Function exit with int value parameter and beforehand releases resources.
+ */
 void gb_exit_process(int);
 
                                                    /* Funkce pro implementaci */

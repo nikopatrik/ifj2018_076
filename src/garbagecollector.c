@@ -1,3 +1,14 @@
+/** garbagecollector.c
+ * This file implements memory operations which are handled in
+ * one-directional list and it releases all memory resources when program
+ * finishes.
+ * Author: Nikolas Patrik xpatri00
+ * Collaborators:
+ *      Peter Hornak   xhorna14
+ *      Matej Jancek   xjance00
+ *      Robert Hubinak xhubin03
+ *
+ */
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -162,7 +173,7 @@ void gb_register_pointer(void* pointer)
 void* gb_malloc(size_t size)
 {
     void* item = malloc(size);
-    if(item == NULL)
+    if(item == NULL) //If Null dont insert inside list
         return item;
 
     InsertFirst(item);
