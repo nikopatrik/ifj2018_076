@@ -21,6 +21,7 @@ b_tests = test_gcollector test_parseexp test_scanner test_symtable
 object_file = main.o garbagecollector.o generate.o instrlist.o parseexp.o parser.o queue.o scanner.o stack.o symtable.o
 
 ifj18: $(object_file)
+	$(CC) $^ -o $@
 
 tests: $(b_tests)
 	run-parts tests/
