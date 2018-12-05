@@ -18,10 +18,9 @@ b_tests = test_gcollector test_parseexp test_scanner test_symtable
 
 .PHONY: all clean commit tests zip
 
+object_file = main.o garbagecollector.o generate.o instrlist.o parseexp.o parser.o queue.o scanner.o stack.o symtable.o
 
-
-main: 
-	@ echo "Tu by mal byt vysledny prekladac. Avsak niekde sa stratil..."
+ifj18: $(object_file)
 
 tests: $(b_tests)
 	run-parts tests/
@@ -56,6 +55,9 @@ build/test_symtable.o: test_symtable.c symtable.h
 build/test_parser.o: test_parser.c parser.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/main.o: main.c parser.h symtable.h scanner.h generate.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 build/garbagecollector.o: garbagecollector.c garbagecollector.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -69,6 +71,9 @@ build/symtable.o: symtable.c symtable.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/queue.o: queue.c queue.h scanner.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/stack.o: stack.c stack.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/parser.o: parser.c parser.h scanner.h symtable.h parseexp.h garbagecollector.h instrlist.h generate.h
