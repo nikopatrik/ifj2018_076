@@ -129,7 +129,6 @@ TGLOBTab* htab_def_func(char* key){
             glob_init(glob_obj, -1, INT, local_table, true);     //pridaj hu tam
         }
         else{
-            printf("ERROR: REDEFINITION of ID %s by func\n", key);
             gb_exit_process(3);
         }
     }
@@ -139,7 +138,6 @@ TGLOBTab* htab_def_func(char* key){
             glob_obj->defined = true;
         }
         else{
-            printf("ERROR: REDEFINITION of FUNC %s by func\n", key);
             gb_exit_process(3);             //RETURN ERROR CODE 3
         }
     }
@@ -157,7 +155,6 @@ TGLOBTab* htab_call_func(char* key){
             glob_init(my_glob_obj, -1, INT, my_local_table, false);     //pridaj hu tam
         }
         else{
-            printf("ERROR: REDEFINITION of ID %s by func\n", key);
             gb_exit_process(3);
         }
         return item->object;
@@ -187,8 +184,7 @@ void htab_set_param_count(TGLOBTab* my_glob_obj,int count){
     else if(my_glob_obj->params_count == -2)
         return;
     else if(my_glob_obj->params_count != count){
-        printf("ERROR: WRONG number of params, EXPECTED:%d\n", my_glob_obj->params_count);
-        gb_exit_process(3);
+        gb_exit_process(5);
     }
 }
 
@@ -209,9 +205,7 @@ void htab_find_id(char *key){
             TGLOBTab* my_glob_obj = (TGLOBTab*) item->object;
             if(my_glob_obj->params_count != -1){         // Skontroluj spravne volanie
                 if(my_glob_obj->params_count != 0){
-                    printf("ERROR: Wrong number of params in function: %s "
-                            "EXPECTED: %d\n", key, my_glob_obj->params_count);
-                    gb_exit_process(3);
+                    gb_exit_process(5);
                 }
             else
                 my_glob_obj->params_count = 0;
@@ -227,14 +221,12 @@ void htab_def_param(char *key){
         loc_init(loc_obj, INT, true);     //pridaj ho tam
     }
     else{
-        printf("ERROR: redefinition of parameter %s\n", key);
-        return;
+        gb_exit_process(3);
     }
 }
 
 void htab_check_param(char *key){
     if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
-        printf("ERROR: undefined parameter %s\n", key);
         gb_exit_process(3);
     }
 }
@@ -243,7 +235,6 @@ void global_def(const char* key, void* object)
 {
     TGLOBTab *tmp = object;
     if(tmp->defined == false){
-        printf("ERROR: undefined function\n");
         gb_exit_process(3);
     }
 }
