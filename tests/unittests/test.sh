@@ -10,6 +10,7 @@ for file in $files; do
     cd $file
     sh test.sh
     mkdir -p testoutput; mv *.code testoutput
+    cp ../testinterpret.sh ./testoutput
     cd ..
 done
 
