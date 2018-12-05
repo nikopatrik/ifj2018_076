@@ -2,7 +2,6 @@
 #include "header/scanner.h"
 #include "header/garbagecollector.h"
 
-
 static tQueue* my_queue;
 
 unsigned length;
@@ -41,6 +40,8 @@ void ungetToken(int type, char *buffer)
 
 int getNextToken(char **buffer)
 {
+    static int file_begin = 0;
+    file_begin++;
     FILE* f = stdin;
 
 	if(!queueEmpty(my_queue)){
@@ -225,7 +226,12 @@ int getNextToken(char **buffer)
 				if((c = fgetc(f))== '='){
 					// ==
 					return TYPE_EQUAL;
-				}else{
+				}
+                else if((c == 'b') && (file_begin == 1)){
+                    state = STATE_BCOM_B;
+                    break;
+                }
+                else{
 					// =
 					ungetc(c, f);
 					return TYPE_ASSIGN;
@@ -543,7 +549,8 @@ int getNextToken(char **buffer)
 					if((c = fgetc(f)) == 10){
 						state = STATE_BCOM_COM_EOL;
 						break;
-					}
+					}else if(c == EOF)
+                        gb_exit_process(1);
 				}
 				break;
 
@@ -551,8 +558,10 @@ int getNextToken(char **buffer)
 			case STATE_BCOM_COM_EOL :
 				if((c = fgetc(f)) == '=')
 					state = STATE_BCOM_COM_EQUALS;
-				else
+				else{
+                    ungetc(c, f);
 					state = STATE_BCOM_COM;
+                }
 				break;
 
 
@@ -582,9 +591,10 @@ int getNextToken(char **buffer)
 
 			case STATE_BCOM_COM_D :
 				// After '=end' have to be at least one whitespace
-				if(isspace(c = fgetc(f)))
+				if(isspace(c = fgetc(f))){
+                    ungetc(c,f);
 					state = STATE_BCOM_COM_2;
-				else
+                }else
 					gb_exit_process(1);
 				break;
 
