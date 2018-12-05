@@ -312,8 +312,15 @@ void printFuncLength(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,"\nLABEL length\n"
                       "PUSHFRAME\n"
+                      "DEFVAR LF@TYPE$LENGTH\n"
+                      "TYPE LF@TYPE$LENGTH LF@$param1\n"
+                      "JUMPIFNEQ $ISNOTOK$LENGTH$ LF@TYPE$LENGTH string@string\n"
                       "DEFVAR LF@$retval\n"
                       "STRLEN LF@$retval LF@$param1\n"
+                      "JUMP $ISOK$LENGTH$\n"
+                      "LABEL $ISNOTOK$LENGTH$\n"
+                      "EXIT int@6\n"
+                      "LABEL $ISOK$LENGTH$\n"
                       "POPFRAME\n"
                       "RETURN\n");
     DLInsertFirst(L,buffer);
@@ -325,6 +332,13 @@ void printFuncSubstr(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL substr\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$SUBSTR\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param1\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@string\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param2\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@int\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param3\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@int\n"
                         "DEFVAR LF@$retval\n"
                         "MOVE LF@$retval string@\n"
                         "DEFVAR LF@length_str\n"
@@ -373,6 +387,10 @@ void printFuncSubstr(tDLList *L)
                         "JUMPIFEQ $NOTNIL LF@final bool@FALSE\n"
                         "MOVE LF@$retval nil@nil\n"
                         "LABEL $NOTNIL\n"
+                        "JUMP ISOK$SUBSTR\n"
+                        "LABEL ISNOTOK$SUBSTR\n"
+                        "EXIT int@6\n"
+                        "LABEL ISOK$SUBSTR\n"
                         "POPFRAME\n"
                         "RETURN\n" );
     DLInsertFirst(L,buffer);
@@ -385,6 +403,9 @@ void printFuncChr(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL chr\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$CHR\n"
+                        "TYPE LF@TYPE$CHR LF@$param1\n"
+                        "JUMPIFNEQ $ENDIF$CHR LF@TYPE$CHR string@int\n"
                         "DEFVAR LF@$retval\n"
                         "DEFVAR LF@vysl\n"
                         "LT LF@vysl LF@$param1 int@0\n"
@@ -394,7 +415,7 @@ void printFuncChr(tDLList *L)
                         "INT2CHAR LF@$retval LF@$param1\n"
                         "JUMP $ISOK$CHR\n"
                         "LABEL $ENDIF$CHR\n"
-                        "EXIT int@4\n"
+                        "EXIT int@6\n"
                         "LABEL $ISOK$CHR"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -407,6 +428,11 @@ void printFuncOrd(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL ord\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$ORD\n"
+                        "TYPE LF@TYPE$ORD LF@$param1\n"
+                        "JUMPIFNEQ $ISNOTOK$ORD LF@TYPE$ORD string@string\n"
+                        "TYPE LF@TYPE$ORD LF@$param2\n"
+                        "JUMPIFNEQ $ISNOTOK$ORD LF@TYPE$ORD string@int\n"
                         "DEFVAR LF@$retval\n"
                         "MOVE LF@$retval nil@nil\n"
                         "DEFVAR LF@vysl\n"
@@ -417,6 +443,9 @@ void printFuncOrd(tDLList *L)
                         "LT LF@vysl LF@$param2 LF@length\n"
                         "JUMPIFEQ $ENDIF$ORD LF@vysl bool@FALSE\n"
                         "STRI2INT LF@$retval LF@$param1 LF@$param2\n"
+                        "JUMP $ENDIF$ORD\n"
+                        "LABEL $ISNOTOK$ORD\n"
+                        "EXIT int@6\n"
                         "LABEL $ENDIF$ORD\n"
                         "POPFRAME\n"
                         "RETURN\n");
