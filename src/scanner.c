@@ -476,18 +476,19 @@ int getNextToken(char **buffer)
 
 			//	In block comment we are checking every char in '=begin'
 			case STATE_BCOM :
-				if(c == '=')
+				if((c = fgetc(f)) == '=')
 					state = STATE_BCOM_EQUALS;
 				else{
 				//	Return EOL, if there is no '=' at beggining of line,
 				//	because we get here by reading newline
+                    ungetc(c, f);
                     return TYPE_EOL;
 				}
 				break;
 
 
 			case STATE_BCOM_EQUALS :
-				if(c == 'b')
+				if((c = fgetc(f)) == 'b')
 					state = STATE_BCOM_B;
 				else
 					gb_exit_process(1);
@@ -495,7 +496,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_B :
-				if(c == 'e')
+				if((c = fgetc(f)) == 'e')
 					state = STATE_BCOM_E;
 				else
 					gb_exit_process(1);
@@ -503,7 +504,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_E :
-				if(c == 'g')
+				if((c = fgetc(f)) == 'g')
 					state = STATE_BCOM_G;
 				else
 					gb_exit_process(1);
@@ -511,7 +512,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_G :
-				if(c == 'i')
+				if((c = fgetc(f)) == 'i')
 					state = STATE_BCOM_I;
 				else
 					gb_exit_process(1);
@@ -519,7 +520,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_I :
-				if(c == 'n')
+				if((c = fgetc(f)) == 'n')
 					state = STATE_BCOM_N;
 				else
 					gb_exit_process(1);
@@ -527,7 +528,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_N :
-				if(isspace(c))
+				if(isspace(c = fgetc(f)))
 					state = STATE_BCOM_COM;
 				else
 					gb_exit_process(1);
@@ -547,7 +548,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_EOL :
-				if(c == '=')
+				if((c = fgetc(f)) == '=')
 					state = STATE_BCOM_COM_EQUALS;
 				else
 					state = STATE_BCOM_COM;
@@ -555,7 +556,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_EQUALS :
-				if(c == 'e')
+				if((c = fgetc(f)) == 'e')
 					state = STATE_BCOM_COM_E;
 				else
 					state = STATE_BCOM_COM;
@@ -563,7 +564,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_E :
-				if(c == 'n')
+				if((c = fgetc(f)) == 'n')
 					state = STATE_BCOM_COM_N;
 				else
 					state = STATE_BCOM_COM;
@@ -571,7 +572,7 @@ int getNextToken(char **buffer)
 
 
 			case STATE_BCOM_COM_N :
-				if(c == 'd')
+				if((c = fgetc(f)) == 'd')
 					state = STATE_BCOM_COM_D;
 				else
 					state = STATE_BCOM_COM;
@@ -580,7 +581,7 @@ int getNextToken(char **buffer)
 
 			case STATE_BCOM_COM_D :
 				// After '=end' have to be at least one whitespace
-				if(isspace(c))
+				if(isspace(c = fgetc(f)))
 					state = STATE_BCOM_COM_2;
 				else
 					gb_exit_process(1);
@@ -591,6 +592,7 @@ int getNextToken(char **buffer)
 				//	Still on ending line is block of comment
 				while(1){
 					if((c = fgetc(f)) == 10){
+                        ungetc(c ,f);
 						state = STATE_BEGIN;
 						break;
 					}
