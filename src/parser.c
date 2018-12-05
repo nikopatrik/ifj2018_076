@@ -53,13 +53,16 @@ bool stat(tokenType* token, char** buffer)
             gb_exit_process(2);
     }
 
-    else if(*token == TYPE_L_BRE){     //SIGN
+    else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE || *token == TYPE_NIL){   //<EXPR>
         ungetToken(*token, *buffer);
         TGLOBTab *htab_temp = htab_return_pointer();
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
             if(def_count != 0)
                 DLPostInsert(&L, "POPS LF@retval\n");
+            *token = getNextToken(buffer);
+            return true;
         }
+        gb_exit_process(2);
     }
 
     //////////////////////////////////////////////////// 04
@@ -267,6 +270,8 @@ bool id_item(tokenType* token, char** buffer)
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
             if(def_count != 0)
                 DLPostInsert(&L, "POPS LF@retval\n");
+            *token = getNextToken(buffer);
+            return true;
         }
             
     }
@@ -345,17 +350,10 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
     else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE || *token == TYPE_NIL){   //<EXPR>
         ungetToken(*token, *buffer);
         TGLOBTab *htab_temp = htab_return_pointer();
-       // if(check_id(id_buffer)){            //ak je id definovane
         printAssignExpr(&L, id_buffer); //prirad
-       /* }
-        else{ 
-            printDefine(&L, id_buffer);     //inak aj definuj
-            printAssignExpr(&L, id_buffer);
-        }*/
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
-            if(def_count != 0){                 //ak sme vo func tak prirad to retval
+            if(def_count != 0)                 //ak sme vo func tak prirad to retval
                 printRetval(&L, id_buffer);
-            }
             *token = getNextToken(buffer);
             return true;
         }
@@ -410,7 +408,7 @@ bool next(tokenType* token, char** buffer, char *id_buffer)
             gb_exit_process(2);
     }
     //////////////////////////////////////// 20
-    else if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO)){  //ID|VALUE
+    else if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || TYPE_NIL){  //ID|VALUE
         TGLOBTab* my_glob_obj = htab_call_func(temp_buff);
         printCallFunc(&L, temp_buff);                 // Volanie funkcie, params preinsert
         DLPreInsert(&L, "CREATEFRAME\n");           // CREATEFRAME pred parametrami
@@ -479,7 +477,7 @@ bool func(tokenType* token, char** buffer)
 bool param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 25
-    if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO)){   // PARAMETER
+    if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO || TYPE_NIL)){   // PARAMETER
         if(*token == TYPE_ID){
             if(one_more_global_id != 0){
                 printWrite(&L, NONE, *buffer);
@@ -554,11 +552,13 @@ bool bracket(tokenType* token, char** buffer){
 bool brc_param(tokenType* token, char** buffer)
 {
     //////////////////////////////////////// 30
-    if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO)){   // PARAMETER
+    if(*token == TYPE_ID || (*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || TYPE_NIL){   // PARAMETER
         if(def_count == 0){          // Ak volam funckiu 
             if(*token == TYPE_ID){
-                if(one_more_global_id != 0)
+                if(one_more_global_id != 0){
                     printWrite(&L, NONE, *buffer);
+                    htab_check_param(*buffer);
+                }
                 else{
                     printParam(&L, NONE, *buffer);
                     htab_check_param(*buffer);

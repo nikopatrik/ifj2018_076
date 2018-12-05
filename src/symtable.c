@@ -167,14 +167,17 @@ TGLOBTab* htab_call_func(char* key){
 
 
 void htab_add_id(char *key){
-    if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
-        item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
-        loc_obj = (TLOCTab*) item->object;
-        loc_init(loc_obj, NONE, true);     //pridaj ho tam
-    }
-    else{
-        loc_obj = (TLOCTab*) item->object;
-    }
+    if((item = htab_find(global_table, key)) == NULL)
+        if((item = htab_find(glob_obj->loc_symtab, key)) == NULL){      //ak nenajdes id
+            item = htab_lookup_add(glob_obj->loc_symtab, key, loc_create);
+            loc_obj = (TLOCTab*) item->object;
+            loc_init(loc_obj, NONE, true);     //pridaj ho tam
+        }
+        else{
+            loc_obj = (TLOCTab*) item->object;
+        }
+    else
+        gb_exit_process(3);
 }
 
 void htab_set_param_count(TGLOBTab* my_glob_obj,int count){

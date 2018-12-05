@@ -11,18 +11,12 @@
 
 int main(){
     
-    int i = -1;
     htab_setup();
     myQueueInit();
     myStackInit();
     bool corr = true;
     corr =  parse();
-    //myQueueFree();
     gb_release_resources();
-    if(corr == true){
-        printf("#correct!\n");
+    if(corr == true)
         return 0;
-    }
-    else
-        printf("#wrong!\n");
 }
