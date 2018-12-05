@@ -6,3 +6,4 @@ ic18int
 cmake-build-debug/
 CMakeLists.txt
 tests/unittests/*/testoutput/testinterpret.sh
+compile_commands.json
