@@ -493,6 +493,9 @@ bool param(tokenType* token, char** buffer)
             else
                 printParam(&L, STRING, *buffer);
         }
+        else if(*token == TYPE_NIL){
+            printParam(&L, NIL, *buffer);
+        }
         else if(*token == TYPE_INT || *token == TYPE_INT_EXPO){
             if(one_more_global_id != 0)
                 printWrite(&L, INT, *buffer);
@@ -570,6 +573,9 @@ bool brc_param(tokenType* token, char** buffer)
                 else
                     printParam(&L, STRING, *buffer);
             }
+            else if(*token == TYPE_NIL){
+                printParam(&L, NIL, *buffer);
+            }
             else if(*token == TYPE_INT || *token == TYPE_INT_EXPO){
                 if(one_more_global_id != 0)
                     printWrite(&L, INT, *buffer);
@@ -606,6 +612,9 @@ bool brc_param(tokenType* token, char** buffer)
                         printWrite(&L, STRING, *buffer);
                     else
                         printParam(&L, STRING, *buffer);
+                }
+                else if(*token == TYPE_NIL){
+                    printParam(&L, NIL, *buffer);
                 }
                 else if(*token == TYPE_INT || *token == TYPE_INT_EXPO){
                     if(one_more_global_id != 0)
