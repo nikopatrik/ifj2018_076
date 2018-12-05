@@ -5,3 +5,4 @@ ic18int
 .idea/*
 cmake-build-debug/
 CMakeLists.txt
+tests/unittests/*/testoutput/testinterpret.sh
