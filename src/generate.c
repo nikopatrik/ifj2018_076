@@ -74,7 +74,7 @@ void convertToString(char **buffer)
             count_of_replaceable_char++;
     // Alokuje pamäť pre upraveny string
     char *formatedstring = malloc(strlen(*buffer)+count_of_replaceable_char*4 + 1);
-    if(*formatedstring == NULL)
+    if(formatedstring == NULL)
         gb_exit_process(99);
     unsigned j=0;
     // Do formatedstringu pridava znaky ktore sa nemenia a konvertuje menene znaky
@@ -244,6 +244,7 @@ void printParam(tDLList *L,TYPES type,char *value)
             free(buffer);
             buffer = NULL;
             fillString(&buffer,"MOVE TF@$param%d nil@nil\n ", id_Param, value);
+            break;
         case INT:
             fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
             DLPreInsert(L,buffer);
@@ -273,6 +274,8 @@ void printParam(tDLList *L,TYPES type,char *value)
             getVarString(&var,value);
             addString(&buffer,var);
             addString(&buffer,"\n");
+            break;
+        default :
             break;
     }
     id_Param ++;
@@ -510,6 +513,8 @@ void printDumpInput(tDLList *L, TYPES type)
             buffer = NULL;
             fillString(&buffer,"READ LF@$dump%d string\n",id_dump);
             break;
+        default :
+            break;
     }
     id_dump++;
     DLPostInsert(L,buffer);
@@ -529,6 +534,8 @@ void printFuncInput(tDLList *L, TYPES type, char *name)
             break;
         case STRING:
             fillString(&buffer,"READ LF@%s string\n", name);
+            break;
+        default :
             break;
     }
     id_dump++;
@@ -562,6 +569,8 @@ void printWrite( tDLList *L, TYPES type, char *name)
             getVarString(&var,name);
             addString(&buffer,var);
             addString(&buffer,"\n");
+            break;
+        default :
             break;
     }
     DLPostInsert(L,buffer);

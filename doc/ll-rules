@@ -30,3 +30,6 @@
 30: <brc-param>     -> id|value <next-brc-param>
 31: <next-brc-param>-> )
 32: <next-brc-param>-> , <brc-param>
+
+printDefine(
+printAssignExpr(

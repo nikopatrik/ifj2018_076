@@ -233,6 +233,9 @@ void htab_check_param(char *key){
 
 void global_def(const char* key, void* object)
 {
+    if(key == NULL){
+    }
+
     TGLOBTab *tmp = object;
     if(tmp->defined == false){
         gb_exit_process(3);

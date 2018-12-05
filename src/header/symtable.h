@@ -40,7 +40,7 @@ typedef struct hashtable{
 typedef enum ifj18_types{ NONE = -1, STRING = 14, EMPTYS_S, INT, INT_EXP, FLOAT, FLOAT_EXP,  NIL = 27 } TYPES;
 
 typedef struct global_table_object{
-    unsigned params_count;
+    int params_count;
     TYPES return_type;
     htab_t *loc_symtab;
     bool defined;

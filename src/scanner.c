@@ -329,6 +329,7 @@ int getNextToken(char **buffer)
 					ungetc(c, f);
 					gb_exit_process(1);
 				}
+                break;
 
 
 			case STATE_INT_EXPO :
