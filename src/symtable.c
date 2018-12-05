@@ -13,7 +13,7 @@
 #include "header/symtable.h"
 #include "header/garbagecollector.h"
 
-#define HTSIZE 500
+#define HTSIZE 512
 
 static htab_t *global_table;
 static htab_t *local_table;
