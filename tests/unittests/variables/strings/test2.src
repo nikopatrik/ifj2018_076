@@ -1,6 +1,0 @@
-#hexa tvar
-
-a = "\x33\nje hexa tvar"
-
-print a,"\n"
-

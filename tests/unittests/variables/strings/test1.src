@@ -1,7 +1,0 @@
-#escape char
-
-a = "toto\nje\na\npica"
-
-print a,"\n"
-
-
