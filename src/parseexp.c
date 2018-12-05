@@ -492,14 +492,17 @@ void generate_divide(tDLList *l, unsigned var_number, unsigned label_number)
             "LABEL $$equal$int$%d\n"
             "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@float\n"
             "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
             "JUMP $$equal$types$%d\n"
             "LABEL $$equal$float$%d\n"
             "JUMPIFNEQ $$error$types$%d LF@prec$notype$%d$type string@int\n"
             "INT2FLOAT LF@prec$notype$%d LF@prec$notype$%d\n"
+            "TYPE LF@prec$notype$%d$type LF@prec$notype$%d\n"
             "JUMP $$equal$types$%d\n",
             label_number,label_number,var_number+1,var_number,var_number,
+            var_number,var_number,
             label_number,label_number,label_number,var_number+1,
-            var_number+1,var_number+1,label_number);
+            var_number+1,var_number+1,var_number+1,var_number+1,label_number);
     DLInsertLast(l,code);
     gb_free(code);
     /* IFJcode18 exit status 9 when dividing with zero */
