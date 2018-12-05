@@ -22,12 +22,16 @@ void addString(char **buffer, char *add)
             unsigned old = strlen(*buffer);
             unsigned new = old + strlen(add);
             *buffer = realloc(*buffer, new +1);
+            if(*buffer == NULL)
+                gb_exit_process(99);
             strcat(*buffer,add);
             (*buffer)[new] = '\0';
         }
         else{           // Ak je string NULL vloží add
             unsigned size = strlen(add);
             *buffer = malloc(sizeof(char)*(size+1));
+            if(*buffer == NULL)
+                gb_exit_process(99);
             strcpy(*buffer,add);
         }
     }
@@ -70,6 +74,8 @@ void convertToString(char **buffer)
             count_of_replaceable_char++;
     // Alokuje pamäť pre upraveny string
     char *formatedstring = malloc(strlen(*buffer)+count_of_replaceable_char*4 + 1);
+    if(*formatedstring == NULL)
+        gb_exit_process(99);
     unsigned j=0;
     // Do formatedstringu pridava znaky ktore sa nemenia a konvertuje menene znaky
     for(unsigned i=0; i< strlen(*buffer);i++){
@@ -86,6 +92,8 @@ void convertToString(char **buffer)
     unsigned length= strlen(formatedstring)+1;
     // Reallocne buffer a vloží sformatovany string
     *buffer = realloc(*buffer,length);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     strcpy(*buffer,formatedstring);
     free(formatedstring);
 
@@ -96,6 +104,8 @@ void getVarInt(char **buffer,char *val)
     int value = atoi(val);
     unsigned size = snprintf(NULL, 0, "int@%d", value);
     *buffer = (char *)malloc(size + 1);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     snprintf(*buffer, size+1, "int@%d", value);
 }
 
@@ -104,6 +114,8 @@ void getVarFloat(char **buffer,char *val)
     double value = atof(val);
     unsigned size = snprintf(NULL, 0, "float@%a", value);
     *buffer = (char *)malloc(size + 1);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     snprintf(*buffer, size+1, "float@%a", value);
 }
 
@@ -112,10 +124,14 @@ void getVarBool(char **buffer,bool value)
     unsigned size = strlen("bool@TRUE");
     if(value){
         *buffer = (char *)malloc(size + 1);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"bool@TRUE");
     }
     else{
         *buffer = (char *)malloc(size + 2);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"bool@FALSE");
     }
 }
@@ -126,17 +142,23 @@ void getVarString(char **buffer,char *value)
     if(size == 0)
     {
         *buffer = malloc(sizeof(char)*8);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"string@");
     }
     else
     {
         char *string = NULL;
         string = malloc(size + 2);
+        if(string == NULL)
+            gb_exit_process(99);
         strcpy(string,value);
         convertToString(&string);
 
         size = snprintf(NULL, 0, "string@%s", string);
         *buffer = (char *)malloc(size + 1);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         snprintf(*buffer, size+1, "string@%s", string);
         free(string);
     }
@@ -216,6 +238,12 @@ void printParam(tDLList *L,TYPES type,char *value)
             buffer = NULL;
             fillString(&buffer,"MOVE TF@$param%d LF@%s\n ", id_Param, value);
             break;
+        case NIL:
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d nil@nil\n ", id_Param, value);
         case INT:
             fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
             DLPreInsert(L,buffer);
