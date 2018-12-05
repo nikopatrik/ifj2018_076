@@ -372,8 +372,8 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
     else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE || *token == TYPE_NIL){   //<EXPR>
         ungetToken(*token, *buffer);
         TGLOBTab *htab_temp = htab_return_pointer();
-        printAssignExpr(&L, id_buffer); //prirad
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){
+            printAssignExpr(&L, id_buffer); //prirad
             if(def_count != 0)                 //ak sme vo func tak prirad to retval
                 printRetval(&L, id_buffer);
             *token = getNextToken(buffer);
@@ -420,8 +420,8 @@ bool next(tokenType* token, char** buffer, char *id_buffer)
         ungetToken(temp, temp_buff);
         ungetToken(*token, *buffer);
         TGLOBTab *htab_temp = htab_return_pointer();
-        printAssignExpr(&L, id_buffer); //prirad
         if(expression_parse(TYPE_EOL, NULL, htab_temp->loc_symtab, &L)){                  //<EXPR>
+            printAssignExpr(&L, id_buffer); //prirad
             if(def_count != 0){                 //ak sme vo func tak prirad to retval
                 printRetval(&L, id_buffer);
             }

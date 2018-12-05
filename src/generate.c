@@ -179,6 +179,7 @@ void printAssign(tDLList *L,char *into, char *from)
     DLPostInsert(L, buffer);
     DLSucc(L);
     free(buffer);
+
 }
 
 void printAssignExpr(tDLList *L,char *name)
@@ -188,6 +189,13 @@ void printAssignExpr(tDLList *L,char *name)
     DLPostInsert(L, buffer);
     DLSucc(L);
     free(buffer);
+    buffer = NULL;
+
+    addString(&buffer, "\n");
+    DLPostInsert(L, buffer);
+    DLSucc(L);
+    free(buffer);
+
 }
 
 void printAssignFunc(tDLList *L,char *name)
@@ -585,6 +593,12 @@ void printMainBegin(tDLList *L)
     addString(&buffer, "LABEL $MAIN\nCREATEFRAME\nPUSHFRAME\n");
     DLInsertFirst(L, buffer);
     DLFirst(L);
+    free(buffer);
+    buffer = NULL;
+
+    addString(&buffer, "\n");
+    DLPostInsert(L, buffer);
+    DLSucc(L);
     free(buffer);
 }
 
