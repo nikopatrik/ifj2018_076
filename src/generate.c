@@ -22,12 +22,16 @@ void addString(char **buffer, char *add)
             unsigned old = strlen(*buffer);
             unsigned new = old + strlen(add);
             *buffer = realloc(*buffer, new +1);
+            if(*buffer == NULL)
+                gb_exit_process(99);
             strcat(*buffer,add);
             (*buffer)[new] = '\0';
         }
         else{           // Ak je string NULL vloží add
             unsigned size = strlen(add);
             *buffer = malloc(sizeof(char)*(size+1));
+            if(*buffer == NULL)
+                gb_exit_process(99);
             strcpy(*buffer,add);
         }
     }
@@ -70,6 +74,8 @@ void convertToString(char **buffer)
             count_of_replaceable_char++;
     // Alokuje pamäť pre upraveny string
     char *formatedstring = malloc(strlen(*buffer)+count_of_replaceable_char*4 + 1);
+    if(formatedstring == NULL)
+        gb_exit_process(99);
     unsigned j=0;
     // Do formatedstringu pridava znaky ktore sa nemenia a konvertuje menene znaky
     for(unsigned i=0; i< strlen(*buffer);i++){
@@ -86,6 +92,8 @@ void convertToString(char **buffer)
     unsigned length= strlen(formatedstring)+1;
     // Reallocne buffer a vloží sformatovany string
     *buffer = realloc(*buffer,length);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     strcpy(*buffer,formatedstring);
     free(formatedstring);
 
@@ -96,6 +104,8 @@ void getVarInt(char **buffer,char *val)
     int value = atoi(val);
     unsigned size = snprintf(NULL, 0, "int@%d", value);
     *buffer = (char *)malloc(size + 1);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     snprintf(*buffer, size+1, "int@%d", value);
 }
 
@@ -104,6 +114,8 @@ void getVarFloat(char **buffer,char *val)
     double value = atof(val);
     unsigned size = snprintf(NULL, 0, "float@%a", value);
     *buffer = (char *)malloc(size + 1);
+    if(*buffer == NULL)
+        gb_exit_process(99);
     snprintf(*buffer, size+1, "float@%a", value);
 }
 
@@ -112,10 +124,14 @@ void getVarBool(char **buffer,bool value)
     unsigned size = strlen("bool@TRUE");
     if(value){
         *buffer = (char *)malloc(size + 1);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"bool@TRUE");
     }
     else{
         *buffer = (char *)malloc(size + 2);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"bool@FALSE");
     }
 }
@@ -126,17 +142,23 @@ void getVarString(char **buffer,char *value)
     if(size == 0)
     {
         *buffer = malloc(sizeof(char)*8);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         strcpy(*buffer,"string@");
     }
     else
     {
         char *string = NULL;
         string = malloc(size + 2);
+        if(string == NULL)
+            gb_exit_process(99);
         strcpy(string,value);
         convertToString(&string);
 
         size = snprintf(NULL, 0, "string@%s", string);
         *buffer = (char *)malloc(size + 1);
+        if(*buffer == NULL)
+            gb_exit_process(99);
         snprintf(*buffer, size+1, "string@%s", string);
         free(string);
     }
@@ -216,6 +238,13 @@ void printParam(tDLList *L,TYPES type,char *value)
             buffer = NULL;
             fillString(&buffer,"MOVE TF@$param%d LF@%s\n ", id_Param, value);
             break;
+        case NIL:
+            fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
+            DLPreInsert(L,buffer);
+            free(buffer);
+            buffer = NULL;
+            fillString(&buffer,"MOVE TF@$param%d nil@nil\n ", id_Param, value);
+            break;
         case INT:
             fillString(&buffer,"DEFVAR TF@$param%d\n",id_Param);
             DLPreInsert(L,buffer);
@@ -245,6 +274,8 @@ void printParam(tDLList *L,TYPES type,char *value)
             getVarString(&var,value);
             addString(&buffer,var);
             addString(&buffer,"\n");
+            break;
+        default :
             break;
     }
     id_Param ++;
@@ -284,8 +315,15 @@ void printFuncLength(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,"\nLABEL length\n"
                       "PUSHFRAME\n"
+                      "DEFVAR LF@TYPE$LENGTH\n"
+                      "TYPE LF@TYPE$LENGTH LF@$param1\n"
+                      "JUMPIFNEQ $ISNOTOK$LENGTH$ LF@TYPE$LENGTH string@string\n"
                       "DEFVAR LF@$retval\n"
                       "STRLEN LF@$retval LF@$param1\n"
+                      "JUMP $ISOK$LENGTH$\n"
+                      "LABEL $ISNOTOK$LENGTH$\n"
+                      "EXIT int@6\n"
+                      "LABEL $ISOK$LENGTH$\n"
                       "POPFRAME\n"
                       "RETURN\n");
     DLInsertFirst(L,buffer);
@@ -297,6 +335,13 @@ void printFuncSubstr(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL substr\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$SUBSTR\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param1\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@string\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param2\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@int\n"
+                        "TYPE LF@TYPE$SUBSTR LF@$param3\n"
+                        "JUMPIFNEQ ISNOTOK$SUBSTR LF@TYPE$SUBSTR string@int\n"
                         "DEFVAR LF@$retval\n"
                         "MOVE LF@$retval string@\n"
                         "DEFVAR LF@length_str\n"
@@ -345,6 +390,10 @@ void printFuncSubstr(tDLList *L)
                         "JUMPIFEQ $NOTNIL LF@final bool@FALSE\n"
                         "MOVE LF@$retval nil@nil\n"
                         "LABEL $NOTNIL\n"
+                        "JUMP ISOK$SUBSTR\n"
+                        "LABEL ISNOTOK$SUBSTR\n"
+                        "EXIT int@6\n"
+                        "LABEL ISOK$SUBSTR\n"
                         "POPFRAME\n"
                         "RETURN\n" );
     DLInsertFirst(L,buffer);
@@ -357,6 +406,9 @@ void printFuncChr(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL chr\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$CHR\n"
+                        "TYPE LF@TYPE$CHR LF@$param1\n"
+                        "JUMPIFNEQ $ENDIF$CHR LF@TYPE$CHR string@int\n"
                         "DEFVAR LF@$retval\n"
                         "DEFVAR LF@vysl\n"
                         "LT LF@vysl LF@$param1 int@0\n"
@@ -366,7 +418,7 @@ void printFuncChr(tDLList *L)
                         "INT2CHAR LF@$retval LF@$param1\n"
                         "JUMP $ISOK$CHR\n"
                         "LABEL $ENDIF$CHR\n"
-                        "EXIT int@4\n"
+                        "EXIT int@6\n"
                         "LABEL $ISOK$CHR"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -379,6 +431,11 @@ void printFuncOrd(tDLList *L)
     char *buffer = NULL;
     addString(&buffer,  "\nLABEL ord\n"
                         "PUSHFRAME\n"
+                        "DEFVAR LF@TYPE$ORD\n"
+                        "TYPE LF@TYPE$ORD LF@$param1\n"
+                        "JUMPIFNEQ $ISNOTOK$ORD LF@TYPE$ORD string@string\n"
+                        "TYPE LF@TYPE$ORD LF@$param2\n"
+                        "JUMPIFNEQ $ISNOTOK$ORD LF@TYPE$ORD string@int\n"
                         "DEFVAR LF@$retval\n"
                         "MOVE LF@$retval nil@nil\n"
                         "DEFVAR LF@vysl\n"
@@ -389,6 +446,9 @@ void printFuncOrd(tDLList *L)
                         "LT LF@vysl LF@$param2 LF@length\n"
                         "JUMPIFEQ $ENDIF$ORD LF@vysl bool@FALSE\n"
                         "STRI2INT LF@$retval LF@$param1 LF@$param2\n"
+                        "JUMP $ENDIF$ORD\n"
+                        "LABEL $ISNOTOK$ORD\n"
+                        "EXIT int@6\n"
                         "LABEL $ENDIF$ORD\n"
                         "POPFRAME\n"
                         "RETURN\n");
@@ -453,6 +513,8 @@ void printDumpInput(tDLList *L, TYPES type)
             buffer = NULL;
             fillString(&buffer,"READ LF@$dump%d string\n",id_dump);
             break;
+        default :
+            break;
     }
     id_dump++;
     DLPostInsert(L,buffer);
@@ -472,6 +534,8 @@ void printFuncInput(tDLList *L, TYPES type, char *name)
             break;
         case STRING:
             fillString(&buffer,"READ LF@%s string\n", name);
+            break;
+        default :
             break;
     }
     id_dump++;
@@ -505,6 +569,8 @@ void printWrite( tDLList *L, TYPES type, char *name)
             getVarString(&var,name);
             addString(&buffer,var);
             addString(&buffer,"\n");
+            break;
+        default :
             break;
     }
     DLPostInsert(L,buffer);
