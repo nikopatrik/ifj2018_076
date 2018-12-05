@@ -342,7 +342,7 @@ bool assign(tokenType* token, char** buffer, char* id_buffer)
             gb_exit_process(2);
     }
     //////////////////////////////////////// 17
-    else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE){   //<EXPR> 
+    else if((*token >= TYPE_QUOT && *token <= TYPE_FLOAT_EXPO) || *token == TYPE_L_BRE || *token == TYPE_NIL){   //<EXPR>
         ungetToken(*token, *buffer);
         TGLOBTab *htab_temp = htab_return_pointer();
        // if(check_id(id_buffer)){            //ak je id definovane
