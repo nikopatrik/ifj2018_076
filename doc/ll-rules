@@ -1,0 +1,35 @@
+01: <st-list>       -> <stat> <st-list>
+02: <st-list>       -> EOF
+03: <stat>          -> id <id-item>
+04: <stat>          -> fid <func>
+05: <stat>          -> if <expr> then EOL <else-st-list> EOL <end-list> EOL
+06: <stat>          -> while <expr> do EOL <end-st-list> EOL
+07: <stat>          -> def id <func> <end-st-list> EOL
+08: <else-st-list>  -> else
+09: <else-st-list>  -> <stat> <else-st-list>
+10: <end-st-list>   -> end
+11: <end-st-list>   -> <stat> <end-st-list>
+12: <id-item>       -> = <assign>
+13: <id-item>       -> EOL/eps
+14: <id-item>       -> <func>
+15: <assign>        -> id <next>
+16: <assign>        -> fid <func>
+17: <assign>        -> <expr>
+18: <next>          -> EOL
+19: <next>          -> sign -> <expr>       //Unget sign
+20: <next>          -> id -> <next-param>   //Unget id|value
+21: <next>          -> ( <bracket> EOL
+22: <func>          -> ( <bracket> EOL
+23: <func>          -> EOL/eps
+24: <func>          -> <param>
+25: <param>         -> id|value <next-param>
+26: <next-param>    -> EOL/eps
+27: <next-param>    -> , <param>
+28: <bracket>       -> )
+29: <bracket>       -> <brc-param>
+30: <brc-param>     -> id|value <next-brc-param>
+31: <next-brc-param>-> )
+32: <next-brc-param>-> , <brc-param>
+
+printDefine(
+printAssignExpr(

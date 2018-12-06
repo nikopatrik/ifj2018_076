@@ -1,2 +1,9 @@
 ifj18
 *.o
+ic18int
+*.code
+.idea/*
+cmake-build-debug/
+CMakeLists.txt
+tests/unittests/*/testoutput/testinterpret.sh
+compile_commands.json
